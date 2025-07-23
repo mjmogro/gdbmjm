@@ -37,8 +37,8 @@
             top: 20px;
             left: 20px;
             width: 340px;
-            max-height: 60vh;
-            background: rgba(255, 255, 255, 0.92);
+            max-height: 90vh;
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 16px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
@@ -149,10 +149,11 @@
         }
 
         .section-content.active {
-            max-height: 500px;
+            max-height: 800px;
             padding: 15px;
             margin-bottom: 8px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+            overflow-y: auto;
         }
 
         /* Estadísticas */
@@ -350,7 +351,7 @@
 
         /* Lista de Observaciones */
         .observations-list {
-            max-height: 250px;
+            max-height: 300px;
             overflow-y: auto;
         }
 
@@ -367,6 +368,11 @@
         .observation-item:hover {
             border-color: #52b788;
             transform: translateX(5px);
+        }
+
+        .observation-item.active {
+            border-color: #52b788;
+            background: #e8f5e9;
         }
 
         .observation-item h4 {
@@ -577,7 +583,7 @@
                 width: calc(100% - 20px);
                 left: 10px;
                 right: 10px;
-                max-height: 50vh;
+                max-height: 85vh;
             }
 
             .panel-main-header h1 {
@@ -623,6 +629,26 @@
         .leaflet-popup-content {
             margin: 13px 19px;
             line-height: 1.5;
+        }
+
+        /* Marcador resaltado */
+        .highlighted-marker {
+            animation: pulse-marker 1s ease-in-out 3;
+        }
+
+        @keyframes pulse-marker {
+            0% {
+                stroke-width: 3;
+                stroke-opacity: 1;
+            }
+            50% {
+                stroke-width: 15;
+                stroke-opacity: 0.5;
+            }
+            100% {
+                stroke-width: 3;
+                stroke-opacity: 1;
+            }
         }
     </style>
 </head>
@@ -872,6 +898,8 @@
         let viasLayer;
         let zonasLayer;
         let observaciones = [];
+        let marcadores = {};
+        let marcadorActivo = null;
         let filtrosActivos = {
             Verde: true,
             Carey: true,
@@ -886,10 +914,10 @@
                 const { createClient } = supabase;
                 supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 
-                // Verificar conexión
+                // Verificar conexión con una consulta simple
                 const { data, error } = await supabaseClient
                     .from('observaciones_tortugas')
-                    .select('count')
+                    .select('id')
                     .limit(1);
                 
                 if (error) throw error;
@@ -989,7 +1017,7 @@
 
         // Inicializar el mapa
         function initMap() {
-            map = L.map('map').setView([-2.1894, -79.8965], 8);
+            map = L.map('map').setView([-1.0, -80.7], 8);
 
             // Capas base
             const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1076,6 +1104,7 @@
         // Mostrar observaciones en el mapa
         function mostrarObservaciones() {
             observacionesLayer.clearLayers();
+            marcadores = {};
 
             observaciones.forEach(obs => {
                 if (filtrosActivos[obs.tipo_tortuga]) {
@@ -1106,6 +1135,7 @@
                     `);
 
                     marker.addTo(observacionesLayer);
+                    marcadores[obs.id] = marker;
                 }
             });
         }
@@ -1121,16 +1151,8 @@
 
                 const item = document.createElement('div');
                 item.className = 'observation-item';
-                item.onclick = () => {
-                    map.setView([obs.latitud, obs.longitud], 14);
-                    // Encontrar y abrir el popup del marcador
-                    observacionesLayer.eachLayer(layer => {
-                        const latlng = layer.getLatLng();
-                        if (latlng.lat === obs.latitud && latlng.lng === obs.longitud) {
-                            layer.openPopup();
-                        }
-                    });
-                };
+                item.id = `obs-item-${obs.id}`;
+                item.onclick = () => focusObservation(obs.id);
 
                 item.innerHTML = `
                     <h4>
@@ -1150,6 +1172,33 @@
             }
         }
 
+        // Función para enfocar una observación
+        function focusObservation(obsId) {
+            const obs = observaciones.find(o => o.id === obsId);
+            if (obs && marcadores[obsId]) {
+                // Remover clase activa de todos los items
+                document.querySelectorAll('.observation-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                // Agregar clase activa al item seleccionado
+                document.getElementById(`obs-item-${obsId}`).classList.add('active');
+                
+                // Centrar mapa en la observación
+                map.setView([obs.latitud, obs.longitud], 14);
+                
+                // Abrir popup
+                marcadores[obsId].openPopup();
+                
+                // Agregar animación al marcador
+                const marker = marcadores[obsId];
+                marker._path.classList.add('highlighted-marker');
+                setTimeout(() => {
+                    marker._path.classList.remove('highlighted-marker');
+                }, 3000);
+            }
+        }
+
         // Cargar capas adicionales
         async function cargarCapasAdicionales() {
             if (isOfflineMode) {
@@ -1157,6 +1206,7 @@
                 // Deshabilitar los switches
                 document.querySelectorAll('.ios-switch input').forEach(input => {
                     input.disabled = true;
+                    input.parentElement.style.opacity = '0.5';
                 });
                 return;
             }
@@ -1167,7 +1217,8 @@
                     .from('poblados')
                     .select('*');
 
-                if (!errorPoblados && poblados) {
+                if (!errorPoblados && poblados && poblados.length > 0) {
+                    console.log(`✅ ${poblados.length} poblados cargados`);
                     poblados.forEach(poblado => {
                         const lat = poblado.latitud || poblado.lat;
                         const lng = poblado.longitud || poblado.lng || poblado.lon;
@@ -1193,14 +1244,18 @@
                             marker.addTo(pobladosLayer);
                         }
                     });
+                } else {
+                    console.log('⚠️ No se encontraron poblados o error:', errorPoblados);
                 }
 
                 // Cargar vías
                 const { data: vias, error: errorVias } = await supabaseClient
                     .from('vias')
-                    .select('*');
+                    .select('*')
+                    .limit(100); // Limitar para evitar sobrecarga
 
-                if (!errorVias && vias) {
+                if (!errorVias && vias && vias.length > 0) {
+                    console.log(`✅ ${vias.length} vías cargadas`);
                     vias.forEach(via => {
                         try {
                             const geom = via.geom || via.geometry;
@@ -1209,9 +1264,9 @@
                                 
                                 const layer = L.geoJSON(geoJSON, {
                                     style: {
-                                        color: '#48d1cc',
+                                        color: '#3498db',
                                         weight: 3,
-                                        opacity: 0.8
+                                        opacity: 0.7
                                     }
                                 });
 
@@ -1229,14 +1284,18 @@
                             console.error('Error procesando vía:', e);
                         }
                     });
+                } else {
+                    console.log('⚠️ No se encontraron vías o error:', errorVias);
                 }
 
                 // Cargar zonas urbanas
                 const { data: zonas, error: errorZonas } = await supabaseClient
                     .from('zu_ecuador')
-                    .select('*');
+                    .select('*')
+                    .limit(50); // Limitar para evitar sobrecarga
 
-                if (!errorZonas && zonas) {
+                if (!errorZonas && zonas && zonas.length > 0) {
+                    console.log(`✅ ${zonas.length} zonas urbanas cargadas`);
                     zonas.forEach(zona => {
                         try {
                             const geom = zona.geom || zona.geometry;
@@ -1245,9 +1304,9 @@
                                 
                                 const layer = L.geoJSON(geoJSON, {
                                     style: {
-                                        fillColor: '#f1c40f',
-                                        fillOpacity: 0.3,
-                                        color: '#f39c12',
+                                        fillColor: '#f39c12',
+                                        fillOpacity: 0.2,
+                                        color: '#d68910',
                                         weight: 2
                                     }
                                 });
@@ -1266,9 +1325,16 @@
                             console.error('Error procesando zona:', e);
                         }
                     });
+                } else {
+                    console.log('⚠️ No se encontraron zonas urbanas o error:', errorZonas);
                 }
             } catch (error) {
                 console.error('❌ Error cargando capas adicionales:', error);
+                // Deshabilitar los switches en caso de error
+                document.querySelectorAll('.ios-switch input').forEach(input => {
+                    input.disabled = true;
+                    input.parentElement.style.opacity = '0.5';
+                });
             }
         }
 
@@ -1427,6 +1493,11 @@
                 // Centrar mapa en nueva observación
                 map.setView([nuevaObservacion.latitud, nuevaObservacion.longitud], 12);
                 
+                // Destacar el nuevo marcador
+                setTimeout(() => {
+                    focusObservation(nuevaObservacion.id);
+                }, 500);
+                
             } catch (error) {
                 console.error('❌ Error:', error);
                 mostrarMensaje('Error al guardar: ' + error.message, 'error');
@@ -1452,7 +1523,7 @@
 
         // Centrar mapa
         function centrarMapa() {
-            map.setView([-2.1894, -79.8965], 8);
+            map.setView([-1.0, -80.7], 8);
         }
 
         // Inicializar cuando el DOM esté listo
