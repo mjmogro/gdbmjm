@@ -22,7 +22,6 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             height: 100vh;
             overflow: hidden;
-            background: #f0f2f5;
         }
 
         #map {
@@ -44,7 +43,6 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
             z-index: 1000;
             overflow-y: auto;
-            overflow-x: hidden;
             padding: 12px;
         }
 
@@ -82,7 +80,7 @@
             color: #7f8c8d;
         }
 
-        /* Secciones con estilo de botón */
+        /* Secciones */
         .section {
             margin-bottom: 8px;
         }
@@ -104,10 +102,6 @@
         .section-header:hover {
             transform: translateY(-1px);
             box-shadow: 0 3px 10px rgba(82, 183, 136, 0.35);
-        }
-
-        .section-header:active {
-            transform: translateY(0);
         }
 
         .section-header.active {
@@ -156,7 +150,7 @@
             overflow-y: auto;
         }
 
-        /* Categorías de secciones */
+        /* Categorías */
         .category-title {
             font-size: 11px;
             text-transform: uppercase;
@@ -224,8 +218,6 @@
             align-items: center;
             gap: 10px;
             background: white;
-            position: relative;
-            overflow: hidden;
         }
 
         .species-btn:hover {
@@ -254,34 +246,19 @@
         }
 
         /* Colores de Especies */
-        .species-verde { 
-            border-color: #27ae60;
-            color: #27ae60;
-        }
+        .species-verde { border-color: #27ae60; color: #27ae60; }
         .species-verde .indicator { background: #27ae60; }
 
-        .species-carey { 
-            border-color: #e67e22;
-            color: #e67e22;
-        }
+        .species-carey { border-color: #e67e22; color: #e67e22; }
         .species-carey .indicator { background: #e67e22; }
 
-        .species-boba { 
-            border-color: #3498db;
-            color: #3498db;
-        }
+        .species-boba { border-color: #3498db; color: #3498db; }
         .species-boba .indicator { background: #3498db; }
 
-        .species-laud { 
-            border-color: #9b59b6;
-            color: #9b59b6;
-        }
+        .species-laud { border-color: #9b59b6; color: #9b59b6; }
         .species-laud .indicator { background: #9b59b6; }
 
-        .species-golfina { 
-            border-color: #f39c12;
-            color: #f39c12;
-        }
+        .species-golfina { border-color: #f39c12; color: #f39c12; }
         .species-golfina .indicator { background: #f39c12; }
 
         /* Switches iOS */
@@ -519,14 +496,8 @@
         }
 
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message.success {
@@ -949,7 +920,6 @@
         let sowtData = [];
         let marcadores = {};
         let marcadoresSOWT = {};
-        let marcadorActivo = null;
         let filtrosActivos = {
             Verde: true,
             Carey: true,
@@ -967,7 +937,7 @@
             Golfina: '#f39c12'
         };
 
-        // Datos de ejemplo para modo offline
+        // Datos de ejemplo
         const observacionesEjemplo = [
             {
                 id: 1,
@@ -1001,32 +971,9 @@
                 latitud: -0.6267,
                 longitud: -80.4123,
                 created_at: new Date().toISOString()
-            },
-            {
-                id: 4,
-                nombre_observador: 'Jorge Silva',
-                tag_id_tortuga: 'TM-004',
-                tipo_tortuga: 'Laúd',
-                actividad: 'Alimentación',
-                observaciones: 'Tortuga adulta alimentándose de medusas',
-                latitud: -2.1962,
-                longitud: -80.8887,
-                created_at: new Date().toISOString()
-            },
-            {
-                id: 5,
-                nombre_observador: 'Paola Castro',
-                tag_id_tortuga: 'TM-005',
-                tipo_tortuga: 'Golfina',
-                actividad: 'Anidación',
-                observaciones: 'Arribada observada en playa protegida',
-                latitud: -1.5433,
-                longitud: -80.9678,
-                created_at: new Date().toISOString()
             }
         ];
 
-        // Datos SOWT simulados
         const sowtDataExample = [
             {
                 id: 'sowt-1',
@@ -1049,46 +996,32 @@
                 longitude: -80.7,
                 observation_date: '2024-07-10',
                 location: 'Manta Bay'
-            },
-            {
-                id: 'sowt-3',
-                species: 'Loggerhead turtle',
-                status: 'Alive',
-                size: 'Adult',
-                sex: 'Male',
-                latitude: -1.8,
-                longitude: -80.9,
-                observation_date: '2024-07-12',
-                location: 'Salinas'
             }
         ];
 
-        // Inicializar Supabase
+        // Funciones principales
         async function initSupabase() {
             try {
                 const { createClient } = supabase;
                 supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 
-                // Verificar conexión con una consulta simple
                 const { data, error } = await supabaseClient
                     .from('observaciones_tortugas')
                     .select('id')
                     .limit(1);
                 
-                if (error && error.code !== 'PGRST116') throw error; // PGRST116 = tabla vacía
+                if (error && error.code !== 'PGRST116') throw error;
                 
                 isOfflineMode = false;
                 updateConnectionStatus(true);
                 console.log('✅ Conexión con Supabase establecida');
             } catch (error) {
-                console.log('⚠️ Error conectando con Supabase:', error.message);
-                console.log('📴 Activando modo offline');
+                console.log('⚠️ Modo offline activado');
                 isOfflineMode = true;
                 updateConnectionStatus(false);
             }
         }
 
-        // Actualizar estado de conexión
         function updateConnectionStatus(online) {
             const statusEl = document.getElementById('connectionStatus');
             const textEl = document.getElementById('connectionText');
@@ -1102,7 +1035,6 @@
             }
         }
 
-        // Inicializar el mapa
         function initMap() {
             map = L.map('map').setView([-1.0, -80.7], 8);
 
@@ -1115,23 +1047,13 @@
                 attribution: '© Esri'
             });
 
-            const topographic = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenTopoMap'
-            });
-
-            const light = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                attribution: '© CartoDB'
-            });
-
             // Agregar capa por defecto
             osm.addTo(map);
 
             // Control de capas base
             const baseMaps = {
                 "Estándar": osm,
-                "Satélite": satellite,
-                "Topográfico": topographic,
-                "Claro": light
+                "Satélite": satellite
             };
 
             L.control.layers(baseMaps).addTo(map);
@@ -1146,36 +1068,27 @@
             precip2019Layer = L.layerGroup();
             estacionesLayer = L.layerGroup();
 
-            // Cargar todas las capas con datos fijos
             setupAllLayers();
             cargarDatos();
         }
 
-        // Configurar todas las capas con datos fijos
         function setupAllLayers() {
             setupClimateLayers();
             setupInfrastructureLayers();
         }
 
-        // Cargar todos los datos
         async function cargarDatos() {
-            console.log('🔄 Iniciando carga de datos...');
-            
+            console.log('🔄 Cargando datos...');
             await cargarObservaciones();
             await cargarSOWTData();
-            
             actualizarEstadisticas();
             actualizarListaObservaciones();
-            
-            console.log('✅ Carga de datos completada');
         }
 
-        // Cargar observaciones
         async function cargarObservaciones() {
             try {
                 if (isOfflineMode) {
                     observaciones = observacionesEjemplo;
-                    console.log('📱 Usando datos de ejemplo (modo offline)');
                 } else {
                     const { data, error } = await supabaseClient
                         .from('observaciones_tortugas')
@@ -1183,31 +1096,19 @@
                         .order('created_at', { ascending: false });
 
                     if (error && error.code !== 'PGRST116') throw error;
-                    
-                    observaciones = data || [];
-                    console.log(`✅ ${observaciones.length} observaciones cargadas desde Supabase`);
-                    
-                    // Si no hay datos, usar ejemplos
-                    if (observaciones.length === 0) {
-                        console.log('ℹ️ No hay datos en la base de datos, usando ejemplos');
-                        observaciones = observacionesEjemplo;
-                    }
+                    observaciones = data && data.length > 0 ? data : observacionesEjemplo;
                 }
-
                 mostrarObservaciones();
             } catch (error) {
-                console.error('❌ Error cargando observaciones:', error);
                 observaciones = observacionesEjemplo;
                 mostrarObservaciones();
             }
         }
 
-        // Cargar datos SOWT
         async function cargarSOWTData() {
             try {
                 if (isOfflineMode) {
                     sowtData = sowtDataExample;
-                    console.log('📱 Usando datos SOWT de ejemplo (modo offline)');
                 } else {
                     const { data, error } = await supabaseClient
                         .from('otm_ec_sowt')
@@ -1215,27 +1116,18 @@
                         .limit(1000);
 
                     if (error && error.code !== 'PGRST116') {
-                        console.log('⚠️ Tabla SOWT no disponible, usando datos de ejemplo');
                         sowtData = sowtDataExample;
                     } else {
-                        sowtData = data || sowtDataExample;
-                        console.log(`✅ ${sowtData.length} registros SOWT cargados`);
-                        
-                        if (sowtData.length === 0) {
-                            sowtData = sowtDataExample;
-                        }
+                        sowtData = data && data.length > 0 ? data : sowtDataExample;
                     }
                 }
-                
                 mostrarSOWTData();
             } catch (error) {
-                console.error('❌ Error cargando datos SOWT:', error);
                 sowtData = sowtDataExample;
                 mostrarSOWTData();
             }
         }
 
-        // Crear icono triangular personalizado
         function createTriangleIcon(color, size = 20) {
             return L.divIcon({
                 html: `<div style="
@@ -1244,7 +1136,6 @@
                     border-left: ${size/2}px solid transparent;
                     border-right: ${size/2}px solid transparent;
                     border-bottom: ${size}px solid ${color};
-                    transform: rotate(0deg);
                 "></div>`,
                 className: 'triangle-icon',
                 iconSize: [size, size],
@@ -1252,21 +1143,19 @@
             });
         }
 
-        // Mostrar datos SOWT en el mapa
         function mostrarSOWTData() {
             sowtLayer.clearLayers();
             marcadoresSOWT = {};
 
             sowtData.forEach(registro => {
-                // Mapear especies comunes de SOWT a nuestro sistema
-                let especie = 'Verde'; // Por defecto
+                let especie = 'Verde';
                 if (registro.species) {
                     const sp = registro.species.toLowerCase();
-                    if (sp.includes('green') || sp.includes('verde')) especie = 'Verde';
-                    else if (sp.includes('hawksbill') || sp.includes('carey')) especie = 'Carey';
-                    else if (sp.includes('loggerhead') || sp.includes('boba')) especie = 'Boba';
-                    else if (sp.includes('leatherback') || sp.includes('laud')) especie = 'Laúd';
-                    else if (sp.includes('olive') || sp.includes('golfina')) especie = 'Golfina';
+                    if (sp.includes('green')) especie = 'Verde';
+                    else if (sp.includes('hawksbill')) especie = 'Carey';
+                    else if (sp.includes('loggerhead')) especie = 'Boba';
+                    else if (sp.includes('leatherback')) especie = 'Laúd';
+                    else if (sp.includes('olive')) especie = 'Golfina';
                 }
 
                 if (filtrosActivos[especie] && registro.latitude && registro.longitude) {
@@ -1274,21 +1163,12 @@
                         icon: createTriangleIcon(coloresEspecies[especie], 16)
                     });
 
-                    const fecha = registro.observation_date || registro.date || 'No especificada';
-
                     marker.bindPopup(`
-                        <div style="min-width: 280px;">
-                            <h4 style="margin: 0 0 10px; color: ${coloresEspecies[especie]};">
-                                🔺 SOWT - ${especie}
-                            </h4>
-                            <p style="margin: 5px 0;"><strong>Especie:</strong> ${registro.species || 'No especificada'}</p>
-                            <p style="margin: 5px 0;"><strong>Estado:</strong> ${registro.status || 'No especificado'}</p>
-                            <p style="margin: 5px 0;"><strong>Tamaño:</strong> ${registro.size || 'No especificado'}</p>
-                            <p style="margin: 5px 0;"><strong>Sexo:</strong> ${registro.sex || 'No especificado'}</p>
-                            <p style="margin: 5px 0;"><strong>Fecha:</strong> ${fecha}</p>
-                            <p style="margin: 5px 0;"><strong>Ubicación:</strong> ${registro.location || 'No especificada'}</p>
-                            <p style="margin: 5px 0;"><strong>Coordenadas:</strong> ${registro.latitude.toFixed(6)}, ${registro.longitude.toFixed(6)}</p>
-                            <p style="margin: 5px 0; font-size: 11px; color: #666;">Fuente: SOWT Database</p>
+                        <div>
+                            <h4 style="color: ${coloresEspecies[especie]};">🔺 SOWT - ${especie}</h4>
+                            <p><strong>Especie:</strong> ${registro.species || 'No especificada'}</p>
+                            <p><strong>Estado:</strong> ${registro.status || 'No especificado'}</p>
+                            <p><strong>Ubicación:</strong> ${registro.location || 'No especificada'}</p>
                         </div>
                     `);
 
@@ -1298,7 +1178,6 @@
             });
         }
 
-        // Mostrar observaciones en el mapa
         function mostrarObservaciones() {
             observacionesLayer.clearLayers();
             marcadores = {};
@@ -1315,20 +1194,14 @@
                     });
 
                     const fecha = new Date(obs.created_at).toLocaleDateString('es-EC');
-                    const hora = new Date(obs.created_at).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
 
                     marker.bindPopup(`
-                        <div style="min-width: 250px;">
-                            <h4 style="margin: 0 0 10px; color: ${coloresEspecies[obs.tipo_tortuga]};">
-                                🐢 ${obs.tipo_tortuga}
-                            </h4>
-                            <p style="margin: 5px 0;"><strong>Observador:</strong> ${obs.nombre_observador}</p>
-                            <p style="margin: 5px 0;"><strong>Tag ID:</strong> ${obs.tag_id_tortuga || 'No registrado'}</p>
-                            <p style="margin: 5px 0;"><strong>Actividad:</strong> ${obs.actividad || 'No especificada'}</p>
-                            <p style="margin: 5px 0;"><strong>Observaciones:</strong> ${obs.observaciones || 'Sin observaciones'}</p>
-                            <p style="margin: 5px 0;"><strong>Fecha:</strong> ${fecha} ${hora}</p>
-                            <p style="margin: 5px 0;"><strong>Coordenadas:</strong> ${obs.latitud.toFixed(6)}, ${obs.longitud.toFixed(6)}</p>
-                            <p style="margin: 5px 0; font-size: 11px; color: #666;">Fuente: Observación Local</p>
+                        <div>
+                            <h4 style="color: ${coloresEspecies[obs.tipo_tortuga]};">🐢 ${obs.tipo_tortuga}</h4>
+                            <p><strong>Observador:</strong> ${obs.nombre_observador}</p>
+                            <p><strong>Tag ID:</strong> ${obs.tag_id_tortuga || 'No registrado'}</p>
+                            <p><strong>Actividad:</strong> ${obs.actividad || 'No especificada'}</p>
+                            <p><strong>Fecha:</strong> ${fecha}</p>
                         </div>
                     `);
 
@@ -1338,18 +1211,14 @@
             });
         }
 
-        // Actualizar lista de observaciones
         function actualizarListaObservaciones() {
             const lista = document.getElementById('observationsList');
             lista.innerHTML = '';
 
             observaciones.forEach(obs => {
                 const fecha = new Date(obs.created_at).toLocaleDateString('es-EC');
-                const hora = new Date(obs.created_at).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
-
                 const item = document.createElement('div');
                 item.className = 'observation-item';
-                item.id = `obs-item-${obs.id}`;
                 item.onclick = () => focusObservation(obs.id);
 
                 item.innerHTML = `
@@ -1358,137 +1227,92 @@
                         ${obs.tipo_tortuga} - ${obs.tag_id_tortuga || 'Sin tag'}
                     </h4>
                     <p><strong>Observador:</strong> ${obs.nombre_observador}</p>
-                    <p><strong>Actividad:</strong> ${obs.actividad || 'No especificada'}</p>
-                    <p class="date">${fecha} ${hora}</p>
+                    <p class="date">${fecha}</p>
                 `;
 
                 lista.appendChild(item);
             });
-
-            if (observaciones.length === 0) {
-                lista.innerHTML = '<p style="text-align: center; color: #6c757d;">No hay observaciones registradas</p>';
-            }
         }
 
-        // Función para enfocar una observación
         function focusObservation(obsId) {
             const obs = observaciones.find(o => o.id === obsId);
             if (obs && marcadores[obsId]) {
-                // Remover clase activa de todos los items
-                document.querySelectorAll('.observation-item').forEach(item => {
-                    item.classList.remove('active');
-                });
-                
-                // Agregar clase activa al item seleccionado
-                document.getElementById(`obs-item-${obsId}`).classList.add('active');
-                
-                // Centrar mapa en la observación
                 map.setView([obs.latitud, obs.longitud], 14);
-                
-                // Abrir popup
                 marcadores[obsId].openPopup();
             }
         }
 
-        // Configurar capas climáticas con datos fijos
         function setupClimateLayers() {
-            // Datos de precipitación 2018 (fijos)
-            const precipitationData2018 = [
+            // Precipitación 2018
+            const precipData2018 = [
                 { coords: [[-0.5, -81.2], [-0.2, -81.2], [-0.2, -80.8], [-0.5, -80.8]], value: 'Alta', mm: 2500 },
-                { coords: [[-1.5, -81.0], [-1.2, -81.0], [-1.2, -80.6], [-1.5, -80.6]], value: 'Media', mm: 1800 },
-                { coords: [[-0.8, -80.8], [-0.5, -80.8], [-0.5, -80.4], [-0.8, -80.4]], value: 'Baja', mm: 1200 },
-                { coords: [[-2.5, -81.5], [-2.0, -81.5], [-2.0, -80.8], [-2.5, -80.8]], value: 'Media', mm: 1600 }
+                { coords: [[-1.5, -81.0], [-1.2, -81.0], [-1.2, -80.6], [-1.5, -80.6]], value: 'Media', mm: 1800 }
             ];
 
-            precipitationData2018.forEach(data => {
-                const color = data.value === 'Alta' ? '#2980b9' : data.value === 'Media' ? '#3498db' : '#85c1e9';
+            precipData2018.forEach(data => {
+                const color = data.value === 'Alta' ? '#2980b9' : '#3498db';
                 L.polygon(data.coords, {
                     color: color,
                     fillColor: color,
                     fillOpacity: 0.4,
                     weight: 2
                 }).bindPopup(`
-                    <h4><i class="fas fa-tint"></i> Precipitación 2018</h4>
+                    <h4>Precipitación 2018</h4>
                     <p><strong>Nivel:</strong> ${data.value}</p>
-                    <p><strong>Precipitación:</strong> ${data.mm} mm</p>
-                    <p><strong>Estación:</strong> Seca/Lluviosa</p>
+                    <p><strong>mm:</strong> ${data.mm}</p>
                 `).addTo(precip2018Layer);
             });
 
-            // Datos de precipitación 2019 (fijos)
-            const precipitationData2019 = [
+            // Precipitación 2019
+            const precipData2019 = [
                 { coords: [[-0.7, -81.0], [-0.4, -81.0], [-0.4, -80.6], [-0.7, -80.6]], value: 'Alta', mm: 2700 },
-                { coords: [[-1.3, -80.8], [-1.0, -80.8], [-1.0, -80.4], [-1.3, -80.4]], value: 'Media', mm: 1900 },
-                { coords: [[-0.6, -80.6], [-0.3, -80.6], [-0.3, -80.2], [-0.6, -80.2]], value: 'Baja', mm: 1100 },
-                { coords: [[-2.3, -81.2], [-2.0, -81.2], [-2.0, -80.9], [-2.3, -80.9]], value: 'Alta', mm: 2400 }
+                { coords: [[-1.3, -80.8], [-1.0, -80.8], [-1.0, -80.4], [-1.3, -80.4]], value: 'Media', mm: 1900 }
             ];
 
-            precipitationData2019.forEach(data => {
-                const color = data.value === 'Alta' ? '#1e3a8a' : data.value === 'Media' ? '#1e40af' : '#60a5fa';
+            precipData2019.forEach(data => {
+                const color = data.value === 'Alta' ? '#1e3a8a' : '#1e40af';
                 L.polygon(data.coords, {
                     color: color,
                     fillColor: color,
                     fillOpacity: 0.4,
                     weight: 2
                 }).bindPopup(`
-                    <h4><i class="fas fa-tint"></i> Precipitación 2019</h4>
+                    <h4>Precipitación 2019</h4>
                     <p><strong>Nivel:</strong> ${data.value}</p>
-                    <p><strong>Precipitación:</strong> ${data.mm} mm</p>
-                    <p><strong>Variación:</strong> ${data.mm > 2000 ? '+15%' : data.mm > 1500 ? '+5%' : '-10%'} vs 2018</p>
+                    <p><strong>mm:</strong> ${data.mm}</p>
                 `).addTo(precip2019Layer);
             });
 
-            // Estaciones meteorológicas (fijas)
+            // Estaciones meteorológicas
             const stations = [
-                { coords: [-0.9, -80.7], name: 'Estación Manta', tipo: 'Automática', altitud: 15, institucion: 'INAMHI' },
-                { coords: [-1.0, -80.6], name: 'Estación Montecristi', tipo: 'Convencional', altitud: 45, institucion: 'INAMHI' },
-                { coords: [-0.5, -80.9], name: 'Estación Puerto López', tipo: 'Automática', altitud: 8, institucion: 'Parque Nacional' },
-                { coords: [-1.3, -80.4], name: 'Estación Jipijapa', tipo: 'Convencional', altitud: 180, institucion: 'INAMHI' },
-                { coords: [-2.2, -80.9], name: 'Estación Salinas', tipo: 'Automática', altitud: 5, institucion: 'INOCAR' },
-                { coords: [-0.4, -80.4], name: 'Estación Bahía de Caráquez', tipo: 'Pluviométrica', altitud: 12, institucion: 'INAMHI' }
+                { coords: [-0.9, -80.7], name: 'Estación Manta' },
+                { coords: [-1.0, -80.6], name: 'Estación Montecristi' },
+                { coords: [-0.5, -80.9], name: 'Estación Puerto López' }
             ];
 
             stations.forEach(station => {
                 L.marker(station.coords, {
                     icon: L.divIcon({
-                        className: 'weather-station-icon',
                         html: '<i class="fas fa-broadcast-tower" style="color: #8b4513; font-size: 18px;"></i>',
                         iconSize: [20, 20]
                     })
-                }).bindPopup(`
-                    <h4><i class="fas fa-broadcast-tower"></i> ${station.name}</h4>
-                    <p><strong>Tipo:</strong> ${station.tipo}</p>
-                    <p><strong>Altitud:</strong> ${station.altitud} msnm</p>
-                    <p><strong>Institución:</strong> ${station.institucion}</p>
-                    <p><strong>Estado:</strong> Activa</p>
-                    <p><strong>Datos:</strong> Temperatura, Humedad, Precipitación, Viento</p>
-                `).addTo(estacionesLayer);
+                }).bindPopup(`<h4>${station.name}</h4>`).addTo(estacionesLayer);
             });
         }
 
-        // Configurar capas de infraestructura con datos fijos
         function setupInfrastructureLayers() {
-            // Poblados costeros del Ecuador (datos fijos ampliados)
+            // Poblados
             const poblados = [
-                { coords: [-0.9553, -80.7339], name: 'Manta', poblacion: 264281, provincia: 'Manabí', tipo: 'Ciudad Principal', puerto: true },
-                { coords: [-1.2642, -80.8118], name: 'Portoviejo', poblacion: 321010, provincia: 'Manabí', tipo: 'Capital Provincial', puerto: false },
-                { coords: [-0.3708, -80.4056], name: 'Bahía de Caráquez', poblacion: 27316, provincia: 'Manabí', tipo: 'Ciudad Turística', puerto: true },
-                { coords: [-1.0180, -80.7055], name: 'Montecristi', poblacion: 73070, provincia: 'Manabí', tipo: 'Ciudad Histórica', puerto: false },
-                { coords: [-1.5433, -80.9678], name: 'Jipijapa', poblacion: 51475, provincia: 'Manabí', tipo: 'Ciudad Comercial', puerto: false },
-                { coords: [-0.6267, -80.4123], name: 'Puerto López', poblacion: 20451, provincia: 'Manabí', tipo: 'Pueblo Pesquero', puerto: true },
-                { coords: [-2.1962, -80.8887], name: 'Salinas', poblacion: 68675, provincia: 'Santa Elena', tipo: 'Balneario', puerto: true },
-                { coords: [-2.2108, -80.9711], name: 'La Libertad', poblacion: 115617, provincia: 'Santa Elena', tipo: 'Puerto Pesquero', puerto: true },
-                { coords: [-0.9667, -80.5833], name: 'Jaramijó', poblacion: 18486, provincia: 'Manabí', tipo: 'Pueblo Costero', puerto: true },
-                { coords: [-0.8333, -80.4167], name: 'San Vicente', poblacion: 19116, provincia: 'Manabí', tipo: 'Pueblo Agrícola', puerto: false }
+                { coords: [-0.9553, -80.7339], name: 'Manta', poblacion: 264281 },
+                { coords: [-1.2642, -80.8118], name: 'Portoviejo', poblacion: 321010 },
+                { coords: [-0.3708, -80.4056], name: 'Bahía de Caráquez', poblacion: 27316 }
             ];
 
             poblados.forEach(poblado => {
                 const radius = Math.max(6, Math.min(poblado.poblacion / 20000, 15));
-                const color = poblado.puerto ? '#3498db' : '#8e44ad';
-                
                 const marker = L.circleMarker(poblado.coords, {
                     radius: radius,
-                    fillColor: color,
+                    fillColor: '#8e44ad',
                     color: '#fff',
                     weight: 2,
                     opacity: 1,
@@ -1496,8 +1320,206 @@
                 });
 
                 marker.bindPopup(`
-                    <h4><i class="fas fa-city"></i> ${poblado.name}</h4>
+                    <h4>${poblado.name}</h4>
                     <p><strong>Población:</strong> ${poblado.poblacion.toLocaleString()}</p>
-                    <p><strong>Provincia:</strong> ${poblado.provincia}</p>
-                    <p><strong>Tipo:</strong> ${poblado.tipo}</p>
-                    <p><strong>Puerto:</strong> ${poblado.puerto ? 'Sí' : 'No'}</p>
+                `);
+
+                marker.addTo(pobladosLayer);
+            });
+
+            // Vías
+            const vias = [
+                {
+                    coords: [[-0.9553, -80.7339], [-1.2642, -80.8118]],
+                    name: 'Ruta Manta-Portoviejo'
+                }
+            ];
+
+            vias.forEach(via => {
+                L.polyline(via.coords, {
+                    color: '#e74c3c',
+                    weight: 4,
+                    opacity: 0.8
+                }).bindPopup(`<h4>${via.name}</h4>`).addTo(viasLayer);
+            });
+
+            // Zonas urbanas
+            const zonas = [
+                {
+                    coords: [[-0.98, -80.76], [-0.93, -80.76], [-0.93, -80.71], [-0.98, -80.71]],
+                    name: 'Área Metropolitana de Manta'
+                }
+            ];
+
+            zonas.forEach(zona => {
+                L.polygon(zona.coords, {
+                    color: '#e74c3c',
+                    fillColor: '#e74c3c',
+                    fillOpacity: 0.2,
+                    weight: 2
+                }).bindPopup(`<h4>${zona.name}</h4>`).addTo(zonasLayer);
+            });
+        }
+
+        function actualizarEstadisticas() {
+            document.getElementById('totalObservaciones').textContent = observaciones.length;
+            document.getElementById('totalSOWT').textContent = sowtData.length;
+            
+            const especies = new Set([
+                ...observaciones.map(obs => obs.tipo_tortuga),
+                ...sowtData.map(s => 'Verde') // Simplificado
+            ]);
+            document.getElementById('especiesUnicas').textContent = especies.size;
+            
+            const ahora = new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('ultimaActualizacion').textContent = ahora;
+
+            // Contadores por especie
+            Object.keys(coloresEspecies).forEach(especie => {
+                const count = observaciones.filter(obs => obs.tipo_tortuga === especie).length;
+                document.getElementById(`count-${especie}`).textContent = count;
+            });
+        }
+
+        // Funciones de control
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const isActive = header.classList.contains('active');
+
+            if (isActive) {
+                header.classList.remove('active');
+                content.classList.remove('active');
+            } else {
+                header.classList.add('active');
+                content.classList.add('active');
+            }
+        }
+
+        function toggleSpeciesFilter(button) {
+            const especie = button.dataset.species;
+            const isActive = filtrosActivos[especie];
+            
+            filtrosActivos[especie] = !isActive;
+            
+            if (isActive) {
+                button.classList.add('inactive');
+            } else {
+                button.classList.remove('inactive');
+            }
+
+            mostrarObservaciones();
+            mostrarSOWTData();
+        }
+
+        function toggleLayer(layerName, isEnabled) {
+            const layers = {
+                poblados: pobladosLayer,
+                vias: viasLayer,
+                zonas: zonasLayer,
+                precip2018: precip2018Layer,
+                precip2019: precip2019Layer,
+                estaciones: estacionesLayer
+            };
+
+            const layer = layers[layerName];
+            if (!layer) return;
+
+            if (isEnabled) {
+                if (!map.hasLayer(layer)) {
+                    layer.addTo(map);
+                }
+            } else {
+                if (map.hasLayer(layer)) {
+                    map.removeLayer(layer);
+                }
+            }
+        }
+
+        function obtenerUbicacion() {
+            if (navigator.geolocation) {
+                mostrarMensaje('Obteniendo ubicación...', 'loading');
+                
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        document.getElementById('latitud').value = position.coords.latitude.toFixed(6);
+                        document.getElementById('longitud').value = position.coords.longitude.toFixed(6);
+                        mostrarMensaje('Ubicación obtenida correctamente', 'success');
+                        setTimeout(() => limpiarMensaje(), 3000);
+                    },
+                    function(error) {
+                        mostrarMensaje('Error al obtener ubicación', 'error');
+                    }
+                );
+            } else {
+                mostrarMensaje('Geolocalización no soportada', 'error');
+            }
+        }
+
+        function mostrarMensaje(texto, tipo) {
+            const messageDiv = document.getElementById('formMessage');
+            messageDiv.innerHTML = texto;
+            messageDiv.className = `message ${tipo}`;
+        }
+
+        function limpiarMensaje() {
+            const messageDiv = document.getElementById('formMessage');
+            messageDiv.innerHTML = '';
+            messageDiv.className = 'message';
+        }
+
+        function actualizarDatos() {
+            cargarDatos();
+        }
+
+        function centrarMapa() {
+            map.setView([-1.0, -80.7], 8);
+        }
+
+        // Event listeners
+        document.getElementById('observationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (isOfflineMode) {
+                mostrarMensaje('No se puede guardar en modo offline', 'error');
+                return;
+            }
+
+            mostrarMensaje('Registrando observación...', 'loading');
+
+            const data = {
+                nombre_observador: document.getElementById('nombreObservador').value,
+                tag_id_tortuga: document.getElementById('tagId').value || null,
+                tipo_tortuga: document.getElementById('tipoTortuga').value,
+                actividad: document.getElementById('actividad').value || null,
+                observaciones: document.getElementById('observaciones').value || null,
+                latitud: parseFloat(document.getElementById('latitud').value),
+                longitud: parseFloat(document.getElementById('longitud').value)
+            };
+
+            try {
+                const { data: result, error } = await supabaseClient
+                    .from('observaciones_tortugas')
+                    .insert([data])
+                    .select();
+
+                if (error) throw error;
+
+                mostrarMensaje('¡Observación registrada exitosamente!', 'success');
+                e.target.reset();
+                await cargarObservaciones();
+                actualizarEstadisticas();
+                actualizarListaObservaciones();
+                
+            } catch (error) {
+                mostrarMensaje(`Error: ${error.message}`, 'error');
+            }
+        });
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initSupabase();
+            initMap();
+        });
+    </script>
+</body>
+</html>
