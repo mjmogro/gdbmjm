@@ -1080,11 +1080,16 @@
 
         // Cargar todos los datos
         async function cargarDatos() {
+            console.log('🔄 Iniciando carga de datos...');
+            
             await cargarObservaciones();
             await cargarSOWTData();
             await cargarCapasAdicionales();
+            
             actualizarEstadisticas();
             actualizarListaObservaciones();
+            
+            console.log('✅ Carga de datos completada');
         }
 
         // Cargar observaciones
@@ -1302,40 +1307,218 @@
 
         // Cargar capas adicionales
         async function cargarCapasAdicionales() {
-            if (isOfflineMode) {
-                console.log('ℹ️ Capas adicionales no disponibles en modo offline');
-                return;
+            await setupClimateLayers();
+            await setupInfrastructureLayers();
+            
+            if (!isOfflineMode) {
+                await cargarCapasDesdeSupabase();
             }
+        }
 
+        // Configurar capas climáticas
+        function setupClimateLayers() {
+            // Simulación de datos de precipitación 2018
+            const precipitationData2018 = [
+                { coords: [[-0.5, -81.2], [-0.2, -81.2], [-0.2, -80.8], [-0.5, -80.8]], value: 'Alta', mm: 2500 },
+                { coords: [[-1.5, -81.0], [-1.2, -81.0], [-1.2, -80.6], [-1.5, -80.6]], value: 'Media', mm: 1800 },
+                { coords: [[-0.8, -80.8], [-0.5, -80.8], [-0.5, -80.4], [-0.8, -80.4]], value: 'Baja', mm: 1200 }
+            ];
+
+            precipitationData2018.forEach(data => {
+                const color = data.value === 'Alta' ? '#2980b9' : data.value === 'Media' ? '#3498db' : '#85c1e9';
+                L.polygon(data.coords, {
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 0.4,
+                    weight: 2
+                }).bindPopup(`
+                    <h4><i class="fas fa-tint"></i> Precipitación 2018</h4>
+                    <p><strong>Nivel:</strong> ${data.value}</p>
+                    <p><strong>Precipitación:</strong> ${data.mm} mm</p>
+                `).addTo(precip2018Layer);
+            });
+
+            // Simulación de datos de precipitación 2019
+            const precipitationData2019 = [
+                { coords: [[-0.7, -81.0], [-0.4, -81.0], [-0.4, -80.6], [-0.7, -80.6]], value: 'Alta', mm: 2700 },
+                { coords: [[-1.3, -80.8], [-1.0, -80.8], [-1.0, -80.4], [-1.3, -80.4]], value: 'Media', mm: 1900 },
+                { coords: [[-0.6, -80.6], [-0.3, -80.6], [-0.3, -80.2], [-0.6, -80.2]], value: 'Baja', mm: 1100 }
+            ];
+
+            precipitationData2019.forEach(data => {
+                const color = data.value === 'Alta' ? '#1e3a8a' : data.value === 'Media' ? '#1e40af' : '#60a5fa';
+                L.polygon(data.coords, {
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 0.4,
+                    weight: 2
+                }).bindPopup(`
+                    <h4><i class="fas fa-tint"></i> Precipitación 2019</h4>
+                    <p><strong>Nivel:</strong> ${data.value}</p>
+                    <p><strong>Precipitación:</strong> ${data.mm} mm</p>
+                `).addTo(precip2019Layer);
+            });
+
+            // Estaciones meteorológicas
+            const stations = [
+                { coords: [-0.9, -80.7], name: 'Estación Manta', tipo: 'Automática', altitud: 15 },
+                { coords: [-1.0, -80.6], name: 'Estación Montecristi', tipo: 'Convencional', altitud: 45 },
+                { coords: [-0.5, -80.9], name: 'Estación Puerto López', tipo: 'Automática', altitud: 8 },
+                { coords: [-1.3, -80.4], name: 'Estación Jipijapa', tipo: 'Convencional', altitud: 180 }
+            ];
+
+            stations.forEach(station => {
+                L.marker(station.coords, {
+                    icon: L.divIcon({
+                        className: 'weather-station-icon',
+                        html: '<i class="fas fa-broadcast-tower" style="color: #8b4513; font-size: 18px;"></i>',
+                        iconSize: [20, 20]
+                    })
+                }).bindPopup(`
+                    <h4><i class="fas fa-broadcast-tower"></i> ${station.name}</h4>
+                    <p><strong>Tipo:</strong> ${station.tipo}</p>
+                    <p><strong>Altitud:</strong> ${station.altitud} msnm</p>
+                    <p><strong>Estado:</strong> Activa</p>
+                    <p><strong>Datos:</strong> Temperatura, Humedad, Precipitación</p>
+                `).addTo(estacionesLayer);
+            });
+        }
+
+        // Configurar capas de infraestructura
+        function setupInfrastructureLayers() {
+            // Poblados costeros del Ecuador
+            const poblados = [
+                { coords: [-0.9553, -80.7339], name: 'Manta', poblacion: 264281, provincia: 'Manabí' },
+                { coords: [-1.2642, -80.8118], name: 'Portoviejo', poblacion: 321010, provincia: 'Manabí' },
+                { coords: [-0.3708, -80.4056], name: 'Bahía de Caráquez', poblacion: 27316, provincia: 'Manabí' },
+                { coords: [-1.0180, -80.7055], name: 'Montecristi', poblacion: 73070, provincia: 'Manabí' },
+                { coords: [-1.5433, -80.9678], name: 'Jipijapa', poblacion: 51475, provincia: 'Manabí' },
+                { coords: [-0.6267, -80.4123], name: 'Puerto López', poblacion: 20451, provincia: 'Manabí' },
+                { coords: [-2.1962, -80.8887], name: 'Salinas', poblacion: 68675, provincia: 'Santa Elena' },
+                { coords: [-2.2108, -80.9711], name: 'La Libertad', poblacion: 115617, provincia: 'Santa Elena' }
+            ];
+
+            poblados.forEach(poblado => {
+                const marker = L.circleMarker(poblado.coords, {
+                    radius: Math.max(6, Math.min(poblado.poblacion / 20000, 15)),
+                    fillColor: '#8e44ad',
+                    color: '#fff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.7
+                });
+
+                marker.bindPopup(`
+                    <h4><i class="fas fa-city"></i> ${poblado.name}</h4>
+                    <p><strong>Población:</strong> ${poblado.poblacion.toLocaleString()}</p>
+                    <p><strong>Provincia:</strong> ${poblado.provincia}</p>
+                    <p><strong>Coordenadas:</strong> ${poblado.coords[0].toFixed(4)}, ${poblado.coords[1].toFixed(4)}</p>
+                `);
+
+                marker.addTo(pobladosLayer);
+            });
+
+            // Vías principales (simuladas)
+            const vias = [
+                {
+                    coords: [[-0.9553, -80.7339], [-1.2642, -80.8118], [-1.5433, -80.9678]],
+                    name: 'Ruta E15 (Manta-Portoviejo-Jipijapa)',
+                    tipo: 'Autopista'
+                },
+                {
+                    coords: [[-0.9553, -80.7339], [-0.6267, -80.4123], [-0.3708, -80.4056]],
+                    name: 'Ruta E15 (Manta-Puerto López-Bahía)',
+                    tipo: 'Carretera Principal'
+                },
+                {
+                    coords: [[-1.5433, -80.9678], [-2.1962, -80.8887], [-2.2108, -80.9711]],
+                    name: 'Ruta E40 (Jipijapa-Salinas-La Libertad)',
+                    tipo: 'Carretera Principal'
+                }
+            ];
+
+            vias.forEach(via => {
+                const color = via.tipo === 'Autopista' ? '#e74c3c' : '#f39c12';
+                const weight = via.tipo === 'Autopista' ? 5 : 3;
+                
+                L.polyline(via.coords, {
+                    color: color,
+                    weight: weight,
+                    opacity: 0.8
+                }).bindPopup(`
+                    <h4><i class="fas fa-road"></i> ${via.name}</h4>
+                    <p><strong>Tipo:</strong> ${via.tipo}</p>
+                    <p><strong>Estado:</strong> Bueno</p>
+                    <p><strong>Longitud:</strong> ${(L.polyline(via.coords).getLatLngs().length * 15).toFixed(1)} km aprox.</p>
+                `).addTo(viasLayer);
+            });
+
+            // Zonas urbanas
+            const zonasUrbanas = [
+                {
+                    coords: [[-0.98, -80.76], [-0.93, -80.76], [-0.93, -80.71], [-0.98, -80.71]],
+                    name: 'Área Metropolitana de Manta',
+                    area: 45.2,
+                    poblacion: 350000
+                },
+                {
+                    coords: [[-1.29, -80.84], [-1.24, -80.84], [-1.24, -80.79], [-1.29, -80.79]],
+                    name: 'Área Urbana de Portoviejo',
+                    area: 52.8,
+                    poblacion: 400000
+                },
+                {
+                    coords: [[-2.22, -81.02], [-2.18, -81.02], [-2.18, -80.95], [-2.22, -80.95]],
+                    name: 'Área Urbana de Salinas-La Libertad',
+                    area: 28.5,
+                    poblacion: 184000
+                }
+            ];
+
+            zonasUrbanas.forEach(zona => {
+                L.polygon(zona.coords, {
+                    color: '#e74c3c',
+                    fillColor: '#e74c3c',
+                    fillOpacity: 0.2,
+                    weight: 2
+                }).bindPopup(`
+                    <h4><i class="fas fa-building"></i> ${zona.name}</h4>
+                    <p><strong>Área:</strong> ${zona.area} km²</p>
+                    <p><strong>Población:</strong> ${zona.poblacion.toLocaleString()}</p>
+                    <p><strong>Densidad:</strong> ${(zona.poblacion / zona.area).toFixed(0)} hab/km²</p>
+                `).addTo(zonasLayer);
+            });
+        }
+
+        // Cargar capas desde Supabase (como complemento)
+        async function cargarCapasDesdeSupabase() {
             try {
-                // Cargar poblados
-                const { data: poblados, error: errorPoblados } = await supabaseClient
+                // Intentar cargar datos adicionales desde Supabase si están disponibles
+                const { data: pobladosDB, error: errorPoblados } = await supabaseClient
                     .from('poblados')
                     .select('*')
-                    .limit(500);
+                    .limit(100);
 
-                if (!errorPoblados && poblados && poblados.length > 0) {
-                    console.log(`✅ ${poblados.length} poblados cargados`);
-                    poblados.forEach(poblado => {
+                if (!errorPoblados && pobladosDB && pobladosDB.length > 0) {
+                    console.log(`✅ ${pobladosDB.length} poblados adicionales cargados desde Supabase`);
+                    pobladosDB.forEach(poblado => {
                         const lat = poblado.latitud || poblado.lat;
                         const lng = poblado.longitud || poblado.lng || poblado.lon;
                         
                         if (lat && lng) {
                             const marker = L.circleMarker([lat, lng], {
-                                radius: 6,
-                                fillColor: '#e74c3c',
+                                radius: 4,
+                                fillColor: '#9b59b6',
                                 color: '#fff',
-                                weight: 2,
+                                weight: 1,
                                 opacity: 1,
                                 fillOpacity: 0.8
                             });
 
                             marker.bindPopup(`
-                                <div>
-                                    <h4 style="margin: 0 0 5px;"><i class="fas fa-city"></i> ${poblado.nombre || 'Sin nombre'}</h4>
-                                    <p style="margin: 5px 0;"><strong>Población:</strong> ${poblado.poblacion || 'No disponible'}</p>
-                                    <p style="margin: 5px 0;"><strong>Provincia:</strong> ${poblado.provincia || 'No disponible'}</p>
-                                </div>
+                                <h4><i class="fas fa-map-marker-alt"></i> ${poblado.nombre || 'Poblado'}</h4>
+                                <p><strong>Fuente:</strong> Base de datos</p>
+                                <p><strong>Coordenadas:</strong> ${lat.toFixed(4)}, ${lng.toFixed(4)}</p>
                             `);
 
                             marker.addTo(pobladosLayer);
@@ -1343,11 +1526,8 @@
                     });
                 }
 
-                // Cargar otras capas aquí (vías, zonas urbanas, etc.)
-                // ... código similar para otras capas
-
             } catch (error) {
-                console.error('❌ Error cargando capas adicionales:', error);
+                console.log('⚠️ Capas adicionales de Supabase no disponibles:', error.message);
             }
         }
 
@@ -1432,12 +1612,21 @@
             };
 
             const layer = layers[layerName];
-            if (!layer) return;
+            if (!layer) {
+                console.warn(`Capa ${layerName} no encontrada`);
+                return;
+            }
 
             if (isEnabled) {
-                layer.addTo(map);
+                if (!map.hasLayer(layer)) {
+                    layer.addTo(map);
+                    console.log(`✅ Capa ${layerName} activada`);
+                }
             } else {
-                map.removeLayer(layer);
+                if (map.hasLayer(layer)) {
+                    map.removeLayer(layer);
+                    console.log(`❌ Capa ${layerName} desactivada`);
+                }
             }
         }
 
