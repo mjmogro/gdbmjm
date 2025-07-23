@@ -976,8 +976,8 @@
         // Inicializar Supabase
         async function initSupabase() {
             try {
-                const { createClient } = supabase;
-                supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                // Acceso correcto al cliente de Supabase
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 
                 // Verificar conexión con una consulta simple
                 const { data, error } = await supabaseClient
@@ -1010,6 +1010,143 @@
                 statusEl.className = 'connection-status offline';
                 textEl.textContent = 'Modo Offline';
             }
+        }
+
+        // Función para toggle de secciones
+        function toggleSection(headerElement) {
+            const section = headerElement.parentElement;
+            const content = section.querySelector('.section-content');
+            const arrow = headerElement.querySelector('.arrow');
+            
+            // Toggle clases activas
+            headerElement.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        // Función para toggle de filtros de especies
+        function toggleSpeciesFilter(button) {
+            const species = button.dataset.species;
+            
+            // Toggle estado del filtro
+            filtrosActivos[species] = !filtrosActivos[species];
+            
+            // Toggle clase visual
+            button.classList.toggle('inactive');
+            
+            // Actualizar visualización
+            mostrarObservaciones();
+            actualizarContadores();
+        }
+
+        // Función para toggle de capas
+        function toggleLayer(layerName) {
+            const layerMap = {
+                'poblados': pobladosLayer,
+                'vias': viasLayer,
+                'zonas': zonasLayer,
+                'precip2018': precip2018Layer,
+                'precip2019': precip2019Layer,
+                'estaciones': estacionesLayer
+            };
+
+            const layer = layerMap[layerName];
+            if (layer) {
+                if (map.hasLayer(layer)) {
+                    map.removeLayer(layer);
+                } else {
+                    map.addLayer(layer);
+                }
+            }
+        }
+
+        // Función para obtener ubicación GPS
+        function obtenerUbicacion() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '<div class="spinner"></div> Obteniendo ubicación...';
+            btn.disabled = true;
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        document.getElementById('latitud').value = position.coords.latitude.toFixed(6);
+                        document.getElementById('longitud').value = position.coords.longitude.toFixed(6);
+                        
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        
+                        showMessage('¡Ubicación obtenida correctamente!', 'success');
+                    },
+                    function(error) {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        
+                        let mensaje = 'Error obteniendo ubicación: ';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                mensaje += 'Permiso denegado';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                mensaje += 'Ubicación no disponible';
+                                break;
+                            case error.TIMEOUT:
+                                mensaje += 'Tiempo de espera agotado';
+                                break;
+                            default:
+                                mensaje += 'Error desconocido';
+                                break;
+                        }
+                        showMessage(mensaje, 'error');
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                showMessage('Geolocalización no soportada en este navegador', 'error');
+            }
+        }
+
+        // Función para mostrar mensajes
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('formMessage');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.style.display = 'block';
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
+
+        // Función para actualizar datos
+        async function actualizarDatos() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '<div class="spinner"></div> Actualizando...';
+            btn.disabled = true;
+
+            try {
+                await cargarDatos();
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                showMessage('Datos actualizados correctamente', 'success');
+            } catch (error) {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                showMessage('Error actualizando datos', 'error');
+            }
+        }
+
+        // Función para centrar mapa
+        function centrarMapa() {
+            map.setView([-1.0, -80.7], 8);
         }
 
         // Colores por especie
@@ -1133,6 +1270,7 @@
             await cargarCapasAdicionales();
             actualizarEstadisticas();
             actualizarListaObservaciones();
+            actualizarContadores();
         }
 
         // Cargar observaciones
@@ -1204,6 +1342,32 @@
 
                     marker.addTo(observacionesLayer);
                     marcadores[obs.id] = marker;
+                }
+            });
+        }
+
+        // Actualizar contadores de especies
+        function actualizarContadores() {
+            const contadores = {};
+            
+            // Inicializar contadores
+            Object.keys(coloresEspecies).forEach(especie => {
+                contadores[especie] = 0;
+            });
+
+            // Contar observaciones por especie
+            observaciones.forEach(obs => {
+                if (contadores.hasOwnProperty(obs.tipo_tortuga)) {
+                    contadores[obs.tipo_tortuga]++;
+                }
+            });
+
+            // Actualizar contadores en la UI
+            document.querySelectorAll('.species-btn').forEach(btn => {
+                const species = btn.dataset.species;
+                const countEl = btn.querySelector('.count');
+                if (countEl && contadores.hasOwnProperty(species)) {
+                    countEl.textContent = contadores[species];
                 }
             });
         }
@@ -1528,4 +1692,85 @@
 
         // Actualizar estadísticas
         function actualizarEstadisticas() {
-            document.getElementById('totalObservaciones').textContent = observaciones
+            document.getElementById('totalObservaciones').textContent = observaciones.length;
+            
+            // Calcular especies únicas
+            const especiesUnicas = new Set(observaciones.map(obs => obs.tipo_tortuga));
+            document.getElementById('especiesUnicas').textContent = especiesUnicas.size;
+        }
+
+        // Manejo del formulario
+        document.getElementById('observationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                nombre_observador: document.getElementById('nombreObservador').value,
+                tag_id_tortuga: document.getElementById('tagId').value,
+                tipo_tortuga: document.getElementById('tipoTortuga').value,
+                actividad: document.getElementById('actividad').value,
+                observaciones: document.getElementById('observaciones').value,
+                latitud: parseFloat(document.getElementById('latitud').value),
+                longitud: parseFloat(document.getElementById('longitud').value),
+                created_at: new Date().toISOString()
+            };
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="spinner"></div> Guardando...';
+            submitBtn.disabled = true;
+
+            try {
+                if (isOfflineMode) {
+                    // Modo offline: agregar a datos locales
+                    formData.id = Date.now(); // ID temporal
+                    observaciones.unshift(formData);
+                    showMessage('Observación guardada localmente (modo offline)', 'success');
+                } else {
+                    // Modo online: guardar en Supabase
+                    const { data, error } = await supabaseClient
+                        .from('observaciones_tortugas')
+                        .insert([formData])
+                        .select();
+
+                    if (error) throw error;
+
+                    // Agregar a los datos locales
+                    if (data && data.length > 0) {
+                        observaciones.unshift(data[0]);
+                    }
+                    showMessage('Observación guardada exitosamente', 'success');
+                }
+
+                // Limpiar formulario
+                e.target.reset();
+                
+                // Actualizar visualización
+                mostrarObservaciones();
+                actualizarEstadisticas();
+                actualizarListaObservaciones();
+                actualizarContadores();
+
+            } catch (error) {
+                console.error('Error guardando observación:', error);
+                showMessage('Error guardando observación: ' + error.message, 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Iniciando aplicación...');
+            
+            // Inicializar Supabase
+            await initSupabase();
+            
+            // Inicializar mapa
+            initMap();
+            
+            console.log('✅ Aplicación iniciada correctamente');
+        });
+    </script>
+</body>
+</html>
