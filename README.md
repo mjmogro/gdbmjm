@@ -156,6 +156,20 @@
             overflow-y: auto;
         }
 
+        /* Categorías de secciones */
+        .category-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #95a5a6;
+            font-weight: 600;
+            margin: 15px 5px 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .category-title:first-child {
+            margin-top: 0;
+        }
+
         /* Estadísticas */
         .stats-grid {
             display: grid;
@@ -667,6 +681,9 @@
             <p>Sistema de monitoreo y observación</p>
         </div>
 
+        <!-- CATEGORÍA: TORTUGAS MARINAS -->
+        <div class="category-title">TORTUGAS MARINAS</div>
+
         <!-- Sección de Estadísticas -->
         <div class="section">
             <div class="section-header active" onclick="toggleSection(this)">
@@ -746,45 +763,6 @@
             </div>
         </div>
 
-        <!-- Sección de Capas Adicionales -->
-        <div class="section">
-            <div class="section-header" onclick="toggleSection(this)">
-                <div class="section-header-content">
-                    <i class="fas fa-layer-group"></i>
-                    <span>Capas Adicionales</span>
-                </div>
-                <i class="fas fa-chevron-down arrow"></i>
-            </div>
-            <div class="section-content">
-                <div class="layer-controls">
-                    <div class="layer-item">
-                        <label><i class="fas fa-city"></i> Poblados</label>
-                        <div class="ios-switch">
-                            <input type="checkbox" id="togglePoblados" onchange="toggleLayer('poblados')">
-                            <div class="ios-switch-bg"></div>
-                            <div class="slider"></div>
-                        </div>
-                    </div>
-                    <div class="layer-item">
-                        <label><i class="fas fa-road"></i> Vías</label>
-                        <div class="ios-switch">
-                            <input type="checkbox" id="toggleVias" onchange="toggleLayer('vias')">
-                            <div class="ios-switch-bg"></div>
-                            <div class="slider"></div>
-                        </div>
-                    </div>
-                    <div class="layer-item">
-                        <label><i class="fas fa-building"></i> Zonas Urbanas</label>
-                        <div class="ios-switch">
-                            <input type="checkbox" id="toggleZonas" onchange="toggleLayer('zonas')">
-                            <div class="ios-switch-bg"></div>
-                            <div class="slider"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Sección de Nueva Observación -->
         <div class="section">
             <div class="section-header" onclick="toggleSection(this)">
@@ -856,11 +834,95 @@
             </div>
         </div>
 
+        <!-- CATEGORÍA: CAPAS GEOGRÁFICAS -->
+        <div class="category-title">CAPAS GEOGRÁFICAS</div>
+
+        <!-- Sección de Capas Base -->
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-header-content">
+                    <i class="fas fa-map"></i>
+                    <span>Capas Base</span>
+                </div>
+                <i class="fas fa-chevron-down arrow"></i>
+            </div>
+            <div class="section-content">
+                <div class="layer-controls">
+                    <div class="layer-item">
+                        <label><i class="fas fa-city"></i> Poblados</label>
+                        <div class="ios-switch">
+                            <input type="checkbox" id="togglePoblados" onchange="toggleLayer('poblados')">
+                            <div class="ios-switch-bg"></div>
+                            <div class="slider"></div>
+                        </div>
+                    </div>
+                    <div class="layer-item">
+                        <label><i class="fas fa-road"></i> Vías</label>
+                        <div class="ios-switch">
+                            <input type="checkbox" id="toggleVias" onchange="toggleLayer('vias')">
+                            <div class="ios-switch-bg"></div>
+                            <div class="slider"></div>
+                        </div>
+                    </div>
+                    <div class="layer-item">
+                        <label><i class="fas fa-building"></i> Zonas Urbanas</label>
+                        <div class="ios-switch">
+                            <input type="checkbox" id="toggleZonas" onchange="toggleLayer('zonas')">
+                            <div class="ios-switch-bg"></div>
+                            <div class="slider"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Datos Climáticos -->
+        <div class="section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-header-content">
+                    <i class="fas fa-cloud-rain"></i>
+                    <span>Datos Climáticos</span>
+                </div>
+                <i class="fas fa-chevron-down arrow"></i>
+            </div>
+            <div class="section-content">
+                <div class="layer-controls">
+                    <div class="layer-item">
+                        <label><i class="fas fa-tint"></i> Precipitación 2018</label>
+                        <div class="ios-switch">
+                            <input type="checkbox" id="togglePrecip2018" onchange="toggleLayer('precip2018')">
+                            <div class="ios-switch-bg"></div>
+                            <div class="slider"></div>
+                        </div>
+                    </div>
+                    <div class="layer-item">
+                        <label><i class="fas fa-tint"></i> Precipitación 2019</label>
+                        <div class="ios-switch">
+                            <input type="checkbox" id="togglePrecip2019" onchange="toggleLayer('precip2019')">
+                            <div class="ios-switch-bg"></div>
+                            <div class="slider"></div>
+                        </div>
+                    </div>
+                    <div class="layer-item">
+                        <label><i class="fas fa-broadcast-tower"></i> Estaciones Meteorológicas</label>
+                        <div class="ios-switch">
+                            <input type="checkbox" id="toggleEstaciones" onchange="toggleLayer('estaciones')">
+                            <div class="ios-switch-bg"></div>
+                            <div class="slider"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CATEGORÍA: HERRAMIENTAS -->
+        <div class="category-title">HERRAMIENTAS</div>
+
         <!-- Sección de Acciones -->
         <div class="section">
             <div class="section-header" onclick="toggleSection(this)">
                 <div class="section-header-content">
-                    <i class="fas fa-cog"></i>
+                    <i class="fas fa-tools"></i>
                     <span>Acciones</span>
                 </div>
                 <i class="fas fa-chevron-down arrow"></i>
@@ -897,6 +959,9 @@
         let pobladosLayer;
         let viasLayer;
         let zonasLayer;
+        let precip2018Layer;
+        let precip2019Layer;
+        let estacionesLayer;
         let observaciones = [];
         let marcadores = {};
         let marcadorActivo = null;
@@ -1054,6 +1119,9 @@
             pobladosLayer = L.layerGroup();
             viasLayer = L.layerGroup();
             zonasLayer = L.layerGroup();
+            precip2018Layer = L.layerGroup();
+            precip2019Layer = L.layerGroup();
+            estacionesLayer = L.layerGroup();
 
             // Cargar datos
             cargarDatos();
@@ -1215,7 +1283,8 @@
                 // Cargar poblados
                 const { data: poblados, error: errorPoblados } = await supabaseClient
                     .from('poblados')
-                    .select('*');
+                    .select('*')
+                    .limit(500);
 
                 if (!errorPoblados && poblados && poblados.length > 0) {
                     console.log(`✅ ${poblados.length} poblados cargados`);
@@ -1235,9 +1304,9 @@
 
                             marker.bindPopup(`
                                 <div>
-                                    <h4 style="margin: 0 0 5px;"><i class="fas fa-city"></i> ${poblado.nombre}</h4>
+                                    <h4 style="margin: 0 0 5px;"><i class="fas fa-city"></i> ${poblado.nombre || 'Sin nombre'}</h4>
                                     <p style="margin: 5px 0;"><strong>Población:</strong> ${poblado.poblacion || 'No disponible'}</p>
-                                    <p style="margin: 5px 0;"><strong>Tipo:</strong> ${poblado.tipo || 'Poblado'}</p>
+                                    <p style="margin: 5px 0;"><strong>Provincia:</strong> ${poblado.provincia || 'No disponible'}</p>
                                 </div>
                             `);
 
@@ -1245,14 +1314,14 @@
                         }
                     });
                 } else {
-                    console.log('⚠️ No se encontraron poblados o error:', errorPoblados);
+                    console.log('⚠️ No se encontraron poblados');
                 }
 
-                // Cargar vías
+                // Cargar vías (usando el nombre correcto de la tabla)
                 const { data: vias, error: errorVias } = await supabaseClient
-                    .from('vias')
+                    .from('VIAS_COSTA_EC')
                     .select('*')
-                    .limit(100); // Limitar para evitar sobrecarga
+                    .limit(100);
 
                 if (!errorVias && vias && vias.length > 0) {
                     console.log(`✅ ${vias.length} vías cargadas`);
@@ -1285,14 +1354,14 @@
                         }
                     });
                 } else {
-                    console.log('⚠️ No se encontraron vías o error:', errorVias);
+                    console.log('⚠️ No se encontraron vías');
                 }
 
                 // Cargar zonas urbanas
                 const { data: zonas, error: errorZonas } = await supabaseClient
-                    .from('zu_ecuador')
+                    .from('ZU_ECUADOR')
                     .select('*')
-                    .limit(50); // Limitar para evitar sobrecarga
+                    .limit(50);
 
                 if (!errorZonas && zonas && zonas.length > 0) {
                     console.log(`✅ ${zonas.length} zonas urbanas cargadas`);
@@ -1314,8 +1383,8 @@
                                 layer.bindPopup(`
                                     <div>
                                         <h4 style="margin: 0 0 5px;"><i class="fas fa-building"></i> ${zona.nombre || 'Zona urbana'}</h4>
-                                        <p style="margin: 5px 0;"><strong>Área:</strong> ${zona.area || 'No disponible'}</p>
-                                        <p style="margin: 5px 0;"><strong>Población:</strong> ${zona.poblacion || 'No disponible'}</p>
+                                        <p style="margin: 5px 0;"><strong>Área:</strong> ${zona.area || 'No disponible'} km²</p>
+                                        <p style="margin: 5px 0;"><strong>Provincia:</strong> ${zona.provincia || 'No disponible'}</p>
                                     </div>
                                 `);
 
@@ -1326,8 +1395,127 @@
                         }
                     });
                 } else {
-                    console.log('⚠️ No se encontraron zonas urbanas o error:', errorZonas);
+                    console.log('⚠️ No se encontraron zonas urbanas');
                 }
+
+                // Cargar estaciones meteorológicas
+                const { data: estaciones, error: errorEstaciones } = await supabaseClient
+                    .from('estaciones_lluvia')
+                    .select('*');
+
+                if (!errorEstaciones && estaciones && estaciones.length > 0) {
+                    console.log(`✅ ${estaciones.length} estaciones meteorológicas cargadas`);
+                    estaciones.forEach(estacion => {
+                        const lat = estacion.latitud || estacion.lat;
+                        const lng = estacion.longitud || estacion.lng || estacion.lon;
+                        
+                        if (lat && lng) {
+                            const marker = L.marker([lat, lng], {
+                                icon: L.divIcon({
+                                    html: '<i class="fas fa-broadcast-tower" style="color: #8b4513; font-size: 20px;"></i>',
+                                    iconSize: [20, 20],
+                                    className: 'custom-div-icon'
+                                })
+                            });
+
+                            marker.bindPopup(`
+                                <div>
+                                    <h4 style="margin: 0 0 5px;"><i class="fas fa-broadcast-tower"></i> ${estacion.nombre || 'Estación sin nombre'}</h4>
+                                    <p style="margin: 5px 0;"><strong>Código:</strong> ${estacion.codigo || 'No disponible'}</p>
+                                    <p style="margin: 5px 0;"><strong>Tipo:</strong> ${estacion.tipo || 'Meteorológica'}</p>
+                                    <p style="margin: 5px 0;"><strong>Altitud:</strong> ${estacion.altitud || 'No disponible'} m</p>
+                                </div>
+                            `);
+
+                            marker.addTo(estacionesLayer);
+                        }
+                    });
+                } else {
+                    console.log('⚠️ No se encontraron estaciones meteorológicas');
+                }
+
+                // Cargar datos de precipitación 2018
+                const { data: precip2018, error: errorPrecip2018 } = await supabaseClient
+                    .from('inamhi-precipitacion-2018')
+                    .select('*')
+                    .limit(200);
+
+                if (!errorPrecip2018 && precip2018 && precip2018.length > 0) {
+                    console.log(`✅ ${precip2018.length} registros de precipitación 2018 cargados`);
+                    precip2018.forEach(registro => {
+                        const lat = registro.latitud || registro.lat;
+                        const lng = registro.longitud || registro.lng || registro.lon;
+                        const precipitacion = registro.precipitacion || registro.valor || 0;
+                        
+                        if (lat && lng) {
+                            // Crear círculo con tamaño proporcional a la precipitación
+                            const radius = Math.min(Math.max(precipitacion / 10, 5), 30);
+                            const marker = L.circleMarker([lat, lng], {
+                                radius: radius,
+                                fillColor: '#00bfff',
+                                color: '#0080ff',
+                                weight: 1,
+                                opacity: 0.8,
+                                fillOpacity: 0.5
+                            });
+
+                            marker.bindPopup(`
+                                <div>
+                                    <h4 style="margin: 0 0 5px;"><i class="fas fa-tint"></i> Precipitación 2018</h4>
+                                    <p style="margin: 5px 0;"><strong>Valor:</strong> ${precipitacion} mm</p>
+                                    <p style="margin: 5px 0;"><strong>Mes:</strong> ${registro.mes || 'No especificado'}</p>
+                                    <p style="margin: 5px 0;"><strong>Estación:</strong> ${registro.estacion || 'No especificada'}</p>
+                                </div>
+                            `);
+
+                            marker.addTo(precip2018Layer);
+                        }
+                    });
+                } else {
+                    console.log('⚠️ No se encontraron datos de precipitación 2018');
+                }
+
+                // Cargar datos de precipitación 2019
+                const { data: precip2019, error: errorPrecip2019 } = await supabaseClient
+                    .from('inamhi-precipitacion-2019')
+                    .select('*')
+                    .limit(200);
+
+                if (!errorPrecip2019 && precip2019 && precip2019.length > 0) {
+                    console.log(`✅ ${precip2019.length} registros de precipitación 2019 cargados`);
+                    precip2019.forEach(registro => {
+                        const lat = registro.latitud || registro.lat;
+                        const lng = registro.longitud || registro.lng || registro.lon;
+                        const precipitacion = registro.precipitacion || registro.valor || 0;
+                        
+                        if (lat && lng) {
+                            // Crear círculo con tamaño proporcional a la precipitación
+                            const radius = Math.min(Math.max(precipitacion / 10, 5), 30);
+                            const marker = L.circleMarker([lat, lng], {
+                                radius: radius,
+                                fillColor: '#1e90ff',
+                                color: '#0000cd',
+                                weight: 1,
+                                opacity: 0.8,
+                                fillOpacity: 0.5
+                            });
+
+                            marker.bindPopup(`
+                                <div>
+                                    <h4 style="margin: 0 0 5px;"><i class="fas fa-tint"></i> Precipitación 2019</h4>
+                                    <p style="margin: 5px 0;"><strong>Valor:</strong> ${precipitacion} mm</p>
+                                    <p style="margin: 5px 0;"><strong>Mes:</strong> ${registro.mes || 'No especificado'}</p>
+                                    <p style="margin: 5px 0;"><strong>Estación:</strong> ${registro.estacion || 'No especificada'}</p>
+                                </div>
+                            `);
+
+                            marker.addTo(precip2019Layer);
+                        }
+                    });
+                } else {
+                    console.log('⚠️ No se encontraron datos de precipitación 2019');
+                }
+
             } catch (error) {
                 console.error('❌ Error cargando capas adicionales:', error);
                 // Deshabilitar los switches en caso de error
@@ -1340,200 +1528,4 @@
 
         // Actualizar estadísticas
         function actualizarEstadisticas() {
-            document.getElementById('totalObservaciones').textContent = observaciones.length;
-            
-            const especiesUnicas = new Set(observaciones.map(obs => obs.tipo_tortuga));
-            document.getElementById('especiesUnicas').textContent = especiesUnicas.size;
-
-            // Actualizar contadores de especies
-            const conteoEspecies = {};
-            observaciones.forEach(obs => {
-                conteoEspecies[obs.tipo_tortuga] = (conteoEspecies[obs.tipo_tortuga] || 0) + 1;
-            });
-
-            document.querySelectorAll('.species-btn').forEach(btn => {
-                const especie = btn.dataset.species;
-                const count = conteoEspecies[especie] || 0;
-                btn.querySelector('.count').textContent = count;
-            });
-        }
-
-        // Toggle sección
-        function toggleSection(header) {
-            header.classList.toggle('active');
-            const content = header.nextElementSibling;
-            content.classList.toggle('active');
-        }
-
-        // Toggle filtro de especie
-        function toggleSpeciesFilter(btn) {
-            const especie = btn.dataset.species;
-            filtrosActivos[especie] = !filtrosActivos[especie];
-            btn.classList.toggle('inactive');
-            mostrarObservaciones();
-        }
-
-        // Toggle capa
-        function toggleLayer(tipo) {
-            switch(tipo) {
-                case 'poblados':
-                    if (map.hasLayer(pobladosLayer)) {
-                        map.removeLayer(pobladosLayer);
-                    } else {
-                        map.addLayer(pobladosLayer);
-                    }
-                    break;
-                case 'vias':
-                    if (map.hasLayer(viasLayer)) {
-                        map.removeLayer(viasLayer);
-                    } else {
-                        map.addLayer(viasLayer);
-                    }
-                    break;
-                case 'zonas':
-                    if (map.hasLayer(zonasLayer)) {
-                        map.removeLayer(zonasLayer);
-                    } else {
-                        map.addLayer(zonasLayer);
-                    }
-                    break;
-            }
-        }
-
-        // Obtener ubicación GPS
-        function obtenerUbicacion() {
-            if (navigator.geolocation) {
-                const btn = event.target.closest('button');
-                btn.innerHTML = '<i class="fas fa-location-dot"></i> Obteniendo ubicación... <span class="spinner"></span>';
-                btn.disabled = true;
-
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        document.getElementById('latitud').value = position.coords.latitude.toFixed(6);
-                        document.getElementById('longitud').value = position.coords.longitude.toFixed(6);
-                        
-                        btn.innerHTML = '<i class="fas fa-location-dot"></i> Obtener mi ubicación';
-                        btn.disabled = false;
-                        
-                        mostrarMensaje('Ubicación obtenida exitosamente', 'success');
-                        
-                        // Centrar mapa en la ubicación
-                        map.setView([position.coords.latitude, position.coords.longitude], 12);
-                    },
-                    (error) => {
-                        btn.innerHTML = '<i class="fas fa-location-dot"></i> Obtener mi ubicación';
-                        btn.disabled = false;
-                        mostrarMensaje('Error al obtener ubicación: ' + error.message, 'error');
-                    }
-                );
-            } else {
-                mostrarMensaje('La geolocalización no está soportada en este navegador', 'error');
-            }
-        }
-
-        // Mostrar mensaje
-        function mostrarMensaje(texto, tipo) {
-            const messageEl = document.getElementById('formMessage');
-            messageEl.textContent = texto;
-            messageEl.className = `message ${tipo}`;
-            messageEl.style.display = 'block';
-            
-            setTimeout(() => {
-                messageEl.style.display = 'none';
-            }, 5000);
-        }
-
-        // Guardar observación
-        document.getElementById('observationForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const btn = e.target.querySelector('button[type="submit"]');
-            btn.innerHTML = '<i class="fas fa-save"></i> Guardando... <span class="spinner"></span>';
-            btn.disabled = true;
-
-            const nuevaObservacion = {
-                nombre_observador: document.getElementById('nombreObservador').value,
-                tag_id_tortuga: document.getElementById('tagId').value || null,
-                tipo_tortuga: document.getElementById('tipoTortuga').value,
-                actividad: document.getElementById('actividad').value,
-                observaciones: document.getElementById('observaciones').value || null,
-                latitud: parseFloat(document.getElementById('latitud').value),
-                longitud: parseFloat(document.getElementById('longitud').value)
-            };
-
-            try {
-                if (isOfflineMode) {
-                    // Modo offline
-                    nuevaObservacion.id = Date.now();
-                    nuevaObservacion.created_at = new Date().toISOString();
-                    observaciones.unshift(nuevaObservacion);
-                    mostrarMensaje('⚠️ Observación guardada localmente (modo offline)', 'success');
-                } else {
-                    // Modo online - guardar en Supabase
-                    const { data, error } = await supabaseClient
-                        .from('observaciones_tortugas')
-                        .insert([nuevaObservacion])
-                        .select()
-                        .single();
-
-                    if (error) throw error;
-                    
-                    observaciones.unshift(data);
-                    mostrarMensaje('✅ Observación guardada exitosamente en Supabase', 'success');
-                }
-
-                // Actualizar mapa y estadísticas
-                mostrarObservaciones();
-                actualizarEstadisticas();
-                actualizarListaObservaciones();
-                
-                // Limpiar formulario
-                document.getElementById('observationForm').reset();
-                
-                // Centrar mapa en nueva observación
-                map.setView([nuevaObservacion.latitud, nuevaObservacion.longitud], 12);
-                
-                // Destacar el nuevo marcador
-                setTimeout(() => {
-                    focusObservation(nuevaObservacion.id);
-                }, 500);
-                
-            } catch (error) {
-                console.error('❌ Error:', error);
-                mostrarMensaje('Error al guardar: ' + error.message, 'error');
-            } finally {
-                btn.innerHTML = '<i class="fas fa-save"></i> Guardar Observación';
-                btn.disabled = false;
-            }
-        });
-
-        // Actualizar datos
-        async function actualizarDatos() {
-            const btn = event.target.closest('button');
-            btn.innerHTML = '<i class="fas fa-sync fa-spin"></i> Actualizando...';
-            btn.disabled = true;
-
-            await cargarDatos();
-            
-            btn.innerHTML = '<i class="fas fa-sync"></i> Actualizar Datos';
-            btn.disabled = false;
-            
-            mostrarMensaje('✅ Datos actualizados correctamente', 'success');
-        }
-
-        // Centrar mapa
-        function centrarMapa() {
-            map.setView([-1.0, -80.7], 8);
-        }
-
-        // Inicializar cuando el DOM esté listo
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Primero inicializar Supabase
-            await initSupabase();
-            
-            // Luego inicializar el mapa
-            initMap();
-        });
-    </script>
-</body>
-</html>
+            document.getElementById('totalObservaciones').textContent = observaciones
