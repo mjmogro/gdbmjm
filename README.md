@@ -1040,6 +1040,8 @@
 
         // Función para toggle de capas
         function toggleLayer(layerName) {
+            console.log('Toggle layer:', layerName);
+            
             const layerMap = {
                 'poblados': pobladosLayer,
                 'vias': viasLayer,
@@ -1053,9 +1055,14 @@
             if (layer) {
                 if (map.hasLayer(layer)) {
                     map.removeLayer(layer);
+                    console.log('Capa', layerName, 'removida');
                 } else {
                     map.addLayer(layer);
+                    console.log('Capa', layerName, 'agregada');
                 }
+            } else {
+                console.warn('Capa no encontrada:', layerName);
+                showMessage(`Capa ${layerName} no disponible en modo ${isOfflineMode ? 'offline' : 'online'}`, 'error');
             }
         }
 
@@ -1133,20 +1140,24 @@
             btn.disabled = true;
 
             try {
+                console.log('Actualizando datos...');
                 await cargarDatos();
                 btn.innerHTML = originalText;
                 btn.disabled = false;
                 showMessage('Datos actualizados correctamente', 'success');
             } catch (error) {
+                console.error('Error actualizando datos:', error);
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                showMessage('Error actualizando datos', 'error');
+                showMessage('Error actualizando datos: ' + error.message, 'error');
             }
         }
 
         // Función para centrar mapa
         function centrarMapa() {
+            console.log('Centrando mapa...');
             map.setView([-1.0, -80.7], 8);
+            showMessage('Mapa centrado en Ecuador', 'success');
         }
 
         // Colores por especie
@@ -1443,250 +1454,311 @@
                 return;
             }
 
+            let capasDisponibles = 0;
+            let totalCapas = 6; // poblados, vias, zonas, estaciones, precip2018, precip2019
+
             try {
                 // Cargar poblados
-                const { data: poblados, error: errorPoblados } = await supabaseClient
-                    .from('poblados')
-                    .select('*')
-                    .limit(500);
+                try {
+                    const { data: poblados, error: errorPoblados } = await supabaseClient
+                        .from('poblados')
+                        .select('*')
+                        .limit(500);
 
-                if (!errorPoblados && poblados && poblados.length > 0) {
-                    console.log(`✅ ${poblados.length} poblados cargados`);
-                    poblados.forEach(poblado => {
-                        const lat = poblado.latitud || poblado.lat;
-                        const lng = poblado.longitud || poblado.lng || poblado.lon;
-                        
-                        if (lat && lng) {
-                            const marker = L.circleMarker([lat, lng], {
-                                radius: 6,
-                                fillColor: '#e74c3c',
-                                color: '#fff',
-                                weight: 2,
-                                opacity: 1,
-                                fillOpacity: 0.8
-                            });
-
-                            marker.bindPopup(`
-                                <div>
-                                    <h4 style="margin: 0 0 5px;"><i class="fas fa-city"></i> ${poblado.nombre || 'Sin nombre'}</h4>
-                                    <p style="margin: 5px 0;"><strong>Población:</strong> ${poblado.poblacion || 'No disponible'}</p>
-                                    <p style="margin: 5px 0;"><strong>Provincia:</strong> ${poblado.provincia || 'No disponible'}</p>
-                                </div>
-                            `);
-
-                            marker.addTo(pobladosLayer);
-                        }
-                    });
-                } else {
-                    console.log('⚠️ No se encontraron poblados');
-                }
-
-                // Cargar vías (usando el nombre correcto de la tabla)
-                const { data: vias, error: errorVias } = await supabaseClient
-                    .from('VIAS_COSTA_EC')
-                    .select('*')
-                    .limit(100);
-
-                if (!errorVias && vias && vias.length > 0) {
-                    console.log(`✅ ${vias.length} vías cargadas`);
-                    vias.forEach(via => {
-                        try {
-                            const geom = via.geom || via.geometry;
-                            if (geom) {
-                                const geoJSON = typeof geom === 'string' ? JSON.parse(geom) : geom;
-                                
-                                const layer = L.geoJSON(geoJSON, {
-                                    style: {
-                                        color: '#3498db',
-                                        weight: 3,
-                                        opacity: 0.7
-                                    }
+                    if (!errorPoblados && poblados && poblados.length > 0) {
+                        console.log(`✅ ${poblados.length} poblados cargados`);
+                        capasDisponibles++;
+                        poblados.forEach(poblado => {
+                            const lat = poblado.latitud || poblado.lat;
+                            const lng = poblado.longitud || poblado.lng || poblado.lon;
+                            
+                            if (lat && lng) {
+                                const marker = L.circleMarker([lat, lng], {
+                                    radius: 6,
+                                    fillColor: '#e74c3c',
+                                    color: '#fff',
+                                    weight: 2,
+                                    opacity: 1,
+                                    fillOpacity: 0.8
                                 });
 
-                                layer.bindPopup(`
+                                marker.bindPopup(`
                                     <div>
-                                        <h4 style="margin: 0 0 5px;"><i class="fas fa-road"></i> ${via.nombre || 'Vía sin nombre'}</h4>
-                                        <p style="margin: 5px 0;"><strong>Tipo:</strong> ${via.tipo || 'No especificado'}</p>
-                                        <p style="margin: 5px 0;"><strong>Estado:</strong> ${via.estado || 'No disponible'}</p>
+                                        <h4 style="margin: 0 0 5px;"><i class="fas fa-city"></i> ${poblado.nombre || 'Sin nombre'}</h4>
+                                        <p style="margin: 5px 0;"><strong>Población:</strong> ${poblado.poblacion || 'No disponible'}</p>
+                                        <p style="margin: 5px 0;"><strong>Provincia:</strong> ${poblado.provincia || 'No disponible'}</p>
                                     </div>
                                 `);
 
-                                layer.addTo(viasLayer);
+                                marker.addTo(pobladosLayer);
                             }
-                        } catch (e) {
-                            console.error('Error procesando vía:', e);
-                        }
-                    });
-                } else {
-                    console.log('⚠️ No se encontraron vías');
+                        });
+                    } else {
+                        console.log('⚠️ No se encontraron poblados o error:', errorPoblados?.message);
+                        document.getElementById('togglePoblados').disabled = true;
+                        document.getElementById('togglePoblados').parentElement.style.opacity = '0.5';
+                    }
+                } catch (e) {
+                    console.error('❌ Error cargando poblados:', e);
+                    document.getElementById('togglePoblados').disabled = true;
+                    document.getElementById('togglePoblados').parentElement.style.opacity = '0.5';
+                }
+
+                // Cargar vías
+                try {
+                    const { data: vias, error: errorVias } = await supabaseClient
+                        .from('VIAS_COSTA_EC')
+                        .select('*')
+                        .limit(100);
+
+                    if (!errorVias && vias && vias.length > 0) {
+                        console.log(`✅ ${vias.length} vías cargadas`);
+                        capasDisponibles++;
+                        vias.forEach(via => {
+                            try {
+                                const geom = via.geom || via.geometry;
+                                if (geom) {
+                                    const geoJSON = typeof geom === 'string' ? JSON.parse(geom) : geom;
+                                    
+                                    const layer = L.geoJSON(geoJSON, {
+                                        style: {
+                                            color: '#3498db',
+                                            weight: 3,
+                                            opacity: 0.7
+                                        }
+                                    });
+
+                                    layer.bindPopup(`
+                                        <div>
+                                            <h4 style="margin: 0 0 5px;"><i class="fas fa-road"></i> ${via.nombre || 'Vía sin nombre'}</h4>
+                                            <p style="margin: 5px 0;"><strong>Tipo:</strong> ${via.tipo || 'No especificado'}</p>
+                                            <p style="margin: 5px 0;"><strong>Estado:</strong> ${via.estado || 'No disponible'}</p>
+                                        </div>
+                                    `);
+
+                                    layer.addTo(viasLayer);
+                                }
+                            } catch (e) {
+                                console.error('Error procesando vía:', e);
+                            }
+                        });
+                    } else {
+                        console.log('⚠️ No se encontraron vías o error:', errorVias?.message);
+                        document.getElementById('toggleVias').disabled = true;
+                        document.getElementById('toggleVias').parentElement.style.opacity = '0.5';
+                    }
+                } catch (e) {
+                    console.error('❌ Error cargando vías:', e);
+                    document.getElementById('toggleVias').disabled = true;
+                    document.getElementById('toggleVias').parentElement.style.opacity = '0.5';
                 }
 
                 // Cargar zonas urbanas
-                const { data: zonas, error: errorZonas } = await supabaseClient
-                    .from('ZU_ECUADOR')
-                    .select('*')
-                    .limit(50);
+                try {
+                    const { data: zonas, error: errorZonas } = await supabaseClient
+                        .from('ZU_ECUADOR')
+                        .select('*')
+                        .limit(50);
 
-                if (!errorZonas && zonas && zonas.length > 0) {
-                    console.log(`✅ ${zonas.length} zonas urbanas cargadas`);
-                    zonas.forEach(zona => {
-                        try {
-                            const geom = zona.geom || zona.geometry;
-                            if (geom) {
-                                const geoJSON = typeof geom === 'string' ? JSON.parse(geom) : geom;
-                                
-                                const layer = L.geoJSON(geoJSON, {
-                                    style: {
-                                        fillColor: '#f39c12',
-                                        fillOpacity: 0.2,
-                                        color: '#d68910',
-                                        weight: 2
-                                    }
-                                });
+                    if (!errorZonas && zonas && zonas.length > 0) {
+                        console.log(`✅ ${zonas.length} zonas urbanas cargadas`);
+                        capasDisponibles++;
+                        zonas.forEach(zona => {
+                            try {
+                                const geom = zona.geom || zona.geometry;
+                                if (geom) {
+                                    const geoJSON = typeof geom === 'string' ? JSON.parse(geom) : geom;
+                                    
+                                    const layer = L.geoJSON(geoJSON, {
+                                        style: {
+                                            fillColor: '#f39c12',
+                                            fillOpacity: 0.2,
+                                            color: '#d68910',
+                                            weight: 2
+                                        }
+                                    });
 
-                                layer.bindPopup(`
-                                    <div>
-                                        <h4 style="margin: 0 0 5px;"><i class="fas fa-building"></i> ${zona.nombre || 'Zona urbana'}</h4>
-                                        <p style="margin: 5px 0;"><strong>Área:</strong> ${zona.area || 'No disponible'} km²</p>
-                                        <p style="margin: 5px 0;"><strong>Provincia:</strong> ${zona.provincia || 'No disponible'}</p>
-                                    </div>
-                                `);
+                                    layer.bindPopup(`
+                                        <div>
+                                            <h4 style="margin: 0 0 5px;"><i class="fas fa-building"></i> ${zona.nombre || 'Zona urbana'}</h4>
+                                            <p style="margin: 5px 0;"><strong>Área:</strong> ${zona.area || 'No disponible'} km²</p>
+                                            <p style="margin: 5px 0;"><strong>Provincia:</strong> ${zona.provincia || 'No disponible'}</p>
+                                        </div>
+                                    `);
 
-                                layer.addTo(zonasLayer);
+                                    layer.addTo(zonasLayer);
+                                }
+                            } catch (e) {
+                                console.error('Error procesando zona:', e);
                             }
-                        } catch (e) {
-                            console.error('Error procesando zona:', e);
-                        }
-                    });
-                } else {
-                    console.log('⚠️ No se encontraron zonas urbanas');
+                        });
+                    } else {
+                        console.log('⚠️ No se encontraron zonas urbanas o error:', errorZonas?.message);
+                        document.getElementById('toggleZonas').disabled = true;
+                        document.getElementById('toggleZonas').parentElement.style.opacity = '0.5';
+                    }
+                } catch (e) {
+                    console.error('❌ Error cargando zonas urbanas:', e);
+                    document.getElementById('toggleZonas').disabled = true;
+                    document.getElementById('toggleZonas').parentElement.style.opacity = '0.5';
                 }
 
                 // Cargar estaciones meteorológicas
-                const { data: estaciones, error: errorEstaciones } = await supabaseClient
-                    .from('estaciones_lluvia')
-                    .select('*');
+                try {
+                    const { data: estaciones, error: errorEstaciones } = await supabaseClient
+                        .from('estaciones_lluvia')
+                        .select('*');
 
-                if (!errorEstaciones && estaciones && estaciones.length > 0) {
-                    console.log(`✅ ${estaciones.length} estaciones meteorológicas cargadas`);
-                    estaciones.forEach(estacion => {
-                        const lat = estacion.latitud || estacion.lat;
-                        const lng = estacion.longitud || estacion.lng || estacion.lon;
-                        
-                        if (lat && lng) {
-                            const marker = L.marker([lat, lng], {
-                                icon: L.divIcon({
-                                    html: '<i class="fas fa-broadcast-tower" style="color: #8b4513; font-size: 20px;"></i>',
-                                    iconSize: [20, 20],
-                                    className: 'custom-div-icon'
-                                })
-                            });
+                    if (!errorEstaciones && estaciones && estaciones.length > 0) {
+                        console.log(`✅ ${estaciones.length} estaciones meteorológicas cargadas`);
+                        capasDisponibles++;
+                        estaciones.forEach(estacion => {
+                            const lat = estacion.latitud || estacion.lat;
+                            const lng = estacion.longitud || estacion.lng || estacion.lon;
+                            
+                            if (lat && lng) {
+                                const marker = L.marker([lat, lng], {
+                                    icon: L.divIcon({
+                                        html: '<i class="fas fa-broadcast-tower" style="color: #8b4513; font-size: 20px;"></i>',
+                                        iconSize: [20, 20],
+                                        className: 'custom-div-icon'
+                                    })
+                                });
 
-                            marker.bindPopup(`
-                                <div>
-                                    <h4 style="margin: 0 0 5px;"><i class="fas fa-broadcast-tower"></i> ${estacion.nombre || 'Estación sin nombre'}</h4>
-                                    <p style="margin: 5px 0;"><strong>Código:</strong> ${estacion.codigo || 'No disponible'}</p>
-                                    <p style="margin: 5px 0;"><strong>Tipo:</strong> ${estacion.tipo || 'Meteorológica'}</p>
-                                    <p style="margin: 5px 0;"><strong>Altitud:</strong> ${estacion.altitud || 'No disponible'} m</p>
-                                </div>
-                            `);
+                                marker.bindPopup(`
+                                    <div>
+                                        <h4 style="margin: 0 0 5px;"><i class="fas fa-broadcast-tower"></i> ${estacion.nombre || 'Estación sin nombre'}</h4>
+                                        <p style="margin: 5px 0;"><strong>Código:</strong> ${estacion.codigo || 'No disponible'}</p>
+                                        <p style="margin: 5px 0;"><strong>Tipo:</strong> ${estacion.tipo || 'Meteorológica'}</p>
+                                        <p style="margin: 5px 0;"><strong>Altitud:</strong> ${estacion.altitud || 'No disponible'} m</p>
+                                    </div>
+                                `);
 
-                            marker.addTo(estacionesLayer);
-                        }
-                    });
-                } else {
-                    console.log('⚠️ No se encontraron estaciones meteorológicas');
+                                marker.addTo(estacionesLayer);
+                            }
+                        });
+                    } else {
+                        console.log('⚠️ No se encontraron estaciones meteorológicas o error:', errorEstaciones?.message);
+                        document.getElementById('toggleEstaciones').disabled = true;
+                        document.getElementById('toggleEstaciones').parentElement.style.opacity = '0.5';
+                    }
+                } catch (e) {
+                    console.error('❌ Error cargando estaciones meteorológicas:', e);
+                    document.getElementById('toggleEstaciones').disabled = true;
+                    document.getElementById('toggleEstaciones').parentElement.style.opacity = '0.5';
                 }
 
                 // Cargar datos de precipitación 2018
-                const { data: precip2018, error: errorPrecip2018 } = await supabaseClient
-                    .from('inamhi-precipitacion-2018')
-                    .select('*')
-                    .limit(200);
+                try {
+                    const { data: precip2018, error: errorPrecip2018 } = await supabaseClient
+                        .from('inamhi-precipitacion-2018')
+                        .select('*')
+                        .limit(200);
 
-                if (!errorPrecip2018 && precip2018 && precip2018.length > 0) {
-                    console.log(`✅ ${precip2018.length} registros de precipitación 2018 cargados`);
-                    precip2018.forEach(registro => {
-                        const lat = registro.latitud || registro.lat;
-                        const lng = registro.longitud || registro.lng || registro.lon;
-                        const precipitacion = registro.precipitacion || registro.valor || 0;
-                        
-                        if (lat && lng) {
-                            // Crear círculo con tamaño proporcional a la precipitación
-                            const radius = Math.min(Math.max(precipitacion / 10, 5), 30);
-                            const marker = L.circleMarker([lat, lng], {
-                                radius: radius,
-                                fillColor: '#00bfff',
-                                color: '#0080ff',
-                                weight: 1,
-                                opacity: 0.8,
-                                fillOpacity: 0.5
-                            });
+                    if (!errorPrecip2018 && precip2018 && precip2018.length > 0) {
+                        console.log(`✅ ${precip2018.length} registros de precipitación 2018 cargados`);
+                        capasDisponibles++;
+                        precip2018.forEach(registro => {
+                            const lat = registro.latitud || registro.lat;
+                            const lng = registro.longitud || registro.lng || registro.lon;
+                            const precipitacion = registro.precipitacion || registro.valor || 0;
+                            
+                            if (lat && lng) {
+                                // Crear círculo con tamaño proporcional a la precipitación
+                                const radius = Math.min(Math.max(precipitacion / 10, 5), 30);
+                                const marker = L.circleMarker([lat, lng], {
+                                    radius: radius,
+                                    fillColor: '#00bfff',
+                                    color: '#0080ff',
+                                    weight: 1,
+                                    opacity: 0.8,
+                                    fillOpacity: 0.5
+                                });
 
-                            marker.bindPopup(`
-                                <div>
-                                    <h4 style="margin: 0 0 5px;"><i class="fas fa-tint"></i> Precipitación 2018</h4>
-                                    <p style="margin: 5px 0;"><strong>Valor:</strong> ${precipitacion} mm</p>
-                                    <p style="margin: 5px 0;"><strong>Mes:</strong> ${registro.mes || 'No especificado'}</p>
-                                    <p style="margin: 5px 0;"><strong>Estación:</strong> ${registro.estacion || 'No especificada'}</p>
-                                </div>
-                            `);
+                                marker.bindPopup(`
+                                    <div>
+                                        <h4 style="margin: 0 0 5px;"><i class="fas fa-tint"></i> Precipitación 2018</h4>
+                                        <p style="margin: 5px 0;"><strong>Valor:</strong> ${precipitacion} mm</p>
+                                        <p style="margin: 5px 0;"><strong>Mes:</strong> ${registro.mes || 'No especificado'}</p>
+                                        <p style="margin: 5px 0;"><strong>Estación:</strong> ${registro.estacion || 'No especificada'}</p>
+                                    </div>
+                                `);
 
-                            marker.addTo(precip2018Layer);
-                        }
-                    });
-                } else {
-                    console.log('⚠️ No se encontraron datos de precipitación 2018');
+                                marker.addTo(precip2018Layer);
+                            }
+                        });
+                    } else {
+                        console.log('⚠️ No se encontraron datos de precipitación 2018 o error:', errorPrecip2018?.message);
+                        document.getElementById('togglePrecip2018').disabled = true;
+                        document.getElementById('togglePrecip2018').parentElement.style.opacity = '0.5';
+                    }
+                } catch (e) {
+                    console.error('❌ Error cargando precipitación 2018:', e);
+                    document.getElementById('togglePrecip2018').disabled = true;
+                    document.getElementById('togglePrecip2018').parentElement.style.opacity = '0.5';
                 }
 
                 // Cargar datos de precipitación 2019
-                const { data: precip2019, error: errorPrecip2019 } = await supabaseClient
-                    .from('inamhi-precipitacion-2019')
-                    .select('*')
-                    .limit(200);
+                try {
+                    const { data: precip2019, error: errorPrecip2019 } = await supabaseClient
+                        .from('inamhi-precipitacion-2019')
+                        .select('*')
+                        .limit(200);
 
-                if (!errorPrecip2019 && precip2019 && precip2019.length > 0) {
-                    console.log(`✅ ${precip2019.length} registros de precipitación 2019 cargados`);
-                    precip2019.forEach(registro => {
-                        const lat = registro.latitud || registro.lat;
-                        const lng = registro.longitud || registro.lng || registro.lon;
-                        const precipitacion = registro.precipitacion || registro.valor || 0;
-                        
-                        if (lat && lng) {
-                            // Crear círculo con tamaño proporcional a la precipitación
-                            const radius = Math.min(Math.max(precipitacion / 10, 5), 30);
-                            const marker = L.circleMarker([lat, lng], {
-                                radius: radius,
-                                fillColor: '#1e90ff',
-                                color: '#0000cd',
-                                weight: 1,
-                                opacity: 0.8,
-                                fillOpacity: 0.5
-                            });
+                    if (!errorPrecip2019 && precip2019 && precip2019.length > 0) {
+                        console.log(`✅ ${precip2019.length} registros de precipitación 2019 cargados`);
+                        capasDisponibles++;
+                        precip2019.forEach(registro => {
+                            const lat = registro.latitud || registro.lat;
+                            const lng = registro.longitud || registro.lng || registro.lon;
+                            const precipitacion = registro.precipitacion || registro.valor || 0;
+                            
+                            if (lat && lng) {
+                                // Crear círculo con tamaño proporcional a la precipitación
+                                const radius = Math.min(Math.max(precipitacion / 10, 5), 30);
+                                const marker = L.circleMarker([lat, lng], {
+                                    radius: radius,
+                                    fillColor: '#1e90ff',
+                                    color: '#0000cd',
+                                    weight: 1,
+                                    opacity: 0.8,
+                                    fillOpacity: 0.5
+                                });
 
-                            marker.bindPopup(`
-                                <div>
-                                    <h4 style="margin: 0 0 5px;"><i class="fas fa-tint"></i> Precipitación 2019</h4>
-                                    <p style="margin: 5px 0;"><strong>Valor:</strong> ${precipitacion} mm</p>
-                                    <p style="margin: 5px 0;"><strong>Mes:</strong> ${registro.mes || 'No especificado'}</p>
-                                    <p style="margin: 5px 0;"><strong>Estación:</strong> ${registro.estacion || 'No especificada'}</p>
-                                </div>
-                            `);
+                                marker.bindPopup(`
+                                    <div>
+                                        <h4 style="margin: 0 0 5px;"><i class="fas fa-tint"></i> Precipitación 2019</h4>
+                                        <p style="margin: 5px 0;"><strong>Valor:</strong> ${precipitacion} mm</p>
+                                        <p style="margin: 5px 0;"><strong>Mes:</strong> ${registro.mes || 'No especificado'}</p>
+                                        <p style="margin: 5px 0;"><strong>Estación:</strong> ${registro.estacion || 'No especificada'}</p>
+                                    </div>
+                                `);
 
-                            marker.addTo(precip2019Layer);
-                        }
-                    });
+                                marker.addTo(precip2019Layer);
+                            }
+                        });
+                    } else {
+                        console.log('⚠️ No se encontraron datos de precipitación 2019 o error:', errorPrecip2019?.message);
+                        document.getElementById('togglePrecip2019').disabled = true;
+                        document.getElementById('togglePrecip2019').parentElement.style.opacity = '0.5';
+                    }
+                } catch (e) {
+                    console.error('❌ Error cargando precipitación 2019:', e);
+                    document.getElementById('togglePrecip2019').disabled = true;
+                    document.getElementById('togglePrecip2019').parentElement.style.opacity = '0.5';
+                }
+
+                console.log(`ℹ️ ${capasDisponibles}/${totalCapas} capas cargadas exitosamente`);
+                
+                if (capasDisponibles > 0) {
+                    showMessage(`${capasDisponibles} capas geográficas disponibles`, 'success');
                 } else {
-                    console.log('⚠️ No se encontraron datos de precipitación 2019');
+                    showMessage('No hay capas geográficas disponibles', 'error');
                 }
 
             } catch (error) {
-                console.error('❌ Error cargando capas adicionales:', error);
-                // Deshabilitar los switches en caso de error
-                document.querySelectorAll('.ios-switch input').forEach(input => {
-                    input.disabled = true;
-                    input.parentElement.style.opacity = '0.5';
-                });
+                console.error('❌ Error general cargando capas adicionales:', error);
+                showMessage('Error cargando capas adicionales: ' + error.message, 'error');
             }
         }
 
@@ -1762,6 +1834,16 @@
         // Inicialización
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🚀 Iniciando aplicación...');
+            
+            // Verificar que las funciones globales estén disponibles
+            window.toggleSection = toggleSection;
+            window.toggleSpeciesFilter = toggleSpeciesFilter;
+            window.toggleLayer = toggleLayer;
+            window.obtenerUbicacion = obtenerUbicacion;
+            window.actualizarDatos = actualizarDatos;
+            window.centrarMapa = centrarMapa;
+            
+            console.log('✅ Funciones globales registradas');
             
             // Inicializar Supabase
             await initSupabase();
