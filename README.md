@@ -597,14 +597,6 @@
             100% { opacity: 1; }
         }
 
-        /* Iconos personalizados para SOWT */
-        .triangle-icon {
-            width: 0;
-            height: 0;
-            border-style: solid;
-            display: inline-block;
-        }
-
         .actions-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -938,8 +930,8 @@
     
     <script>
         // Configuración de Supabase
-        const SUPABASE_URL = 'https://dhvlvfhhagicnvfekxgc.supabase.co'
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRodmx2ZmhoYWdpY252ZmVreGdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyNzYwNjIsImV4cCI6MjA2NTg1MjA2Mn0.U29qJQeU41AZkJh7Xm6Fj7J4wBo-UK_nqkhhtIpWCNQ'
+        const SUPABASE_URL = 'https://dhvlvfhhagicnvfekxgc.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRodmx2ZmhoYWdpY252ZmVreGdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyNzYwNjIsImV4cCI6MjA2NTg1MjA2Mn0.U29qJQeU41AZkJh7Xm6Fj7J4wBo-UK_nqkhhtIpWCNQ';
         
         // Variables globales
         let supabaseClient = null;
@@ -974,45 +966,6 @@
             Laúd: '#9b59b6',
             Golfina: '#f39c12'
         };
-
-        // Inicializar Supabase
-        async function initSupabase() {
-            try {
-                const { createClient } = supabase;
-                supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                
-                // Verificar conexión con una consulta simple
-                const { data, error } = await supabaseClient
-                    .from('observaciones_tortugas')
-                    .select('id')
-                    .limit(1);
-                
-                if (error && error.code !== 'PGRST116') throw error; // PGRST116 = tabla vacía
-                
-                isOfflineMode = false;
-                updateConnectionStatus(true);
-                console.log('✅ Conexión con Supabase establecida');
-            } catch (error) {
-                console.log('⚠️ Error conectando con Supabase:', error.message);
-                console.log('📴 Activando modo offline');
-                isOfflineMode = true;
-                updateConnectionStatus(false);
-            }
-        }
-
-        // Actualizar estado de conexión
-        function updateConnectionStatus(online) {
-            const statusEl = document.getElementById('connectionStatus');
-            const textEl = document.getElementById('connectionText');
-            
-            if (online) {
-                statusEl.className = 'connection-status online';
-                textEl.textContent = 'Conectado a Supabase';
-            } else {
-                statusEl.className = 'connection-status offline';
-                textEl.textContent = 'Modo Offline';
-            }
-        }
 
         // Datos de ejemplo para modo offline
         const observacionesEjemplo = [
@@ -1109,6 +1062,45 @@
                 location: 'Salinas'
             }
         ];
+
+        // Inicializar Supabase
+        async function initSupabase() {
+            try {
+                const { createClient } = supabase;
+                supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                // Verificar conexión con una consulta simple
+                const { data, error } = await supabaseClient
+                    .from('observaciones_tortugas')
+                    .select('id')
+                    .limit(1);
+                
+                if (error && error.code !== 'PGRST116') throw error; // PGRST116 = tabla vacía
+                
+                isOfflineMode = false;
+                updateConnectionStatus(true);
+                console.log('✅ Conexión con Supabase establecida');
+            } catch (error) {
+                console.log('⚠️ Error conectando con Supabase:', error.message);
+                console.log('📴 Activando modo offline');
+                isOfflineMode = true;
+                updateConnectionStatus(false);
+            }
+        }
+
+        // Actualizar estado de conexión
+        function updateConnectionStatus(online) {
+            const statusEl = document.getElementById('connectionStatus');
+            const textEl = document.getElementById('connectionText');
+            
+            if (online) {
+                statusEl.className = 'connection-status online';
+                textEl.textContent = 'Conectado a Supabase';
+            } else {
+                statusEl.className = 'connection-status offline';
+                textEl.textContent = 'Modo Offline';
+            }
+        }
 
         // Inicializar el mapa
         function initMap() {
@@ -1285,330 +1277,6 @@
                     const fecha = registro.observation_date || registro.date || 'No especificada';
 
                     marker.bindPopup(`
-                    <h4><i class="fas fa-city"></i> ${poblado.name}</h4>
-                    <p><strong>Población:</strong> ${poblado.poblacion.toLocaleString()}</p>
-                    <p><strong>Provincia:</strong> ${poblado.provincia}</p>
-                    <p><strong>Tipo:</strong> ${poblado.tipo}</p>
-                    <p><strong>Puerto:</strong> ${poblado.puerto ? 'Sí' : 'No'}</p>
-                    <p><strong>Coordenadas:</strong> ${poblado.coords[0].toFixed(4)}, ${poblado.coords[1].toFixed(4)}</p>
-                `);
-
-                marker.addTo(pobladosLayer);
-            });
-
-            // Vías principales (datos fijos ampliados)
-            const vias = [
-                {
-                    coords: [[-0.9553, -80.7339], [-1.2642, -80.8118], [-1.5433, -80.9678]],
-                    name: 'Ruta E15 (Manta-Portoviejo-Jipijapa)',
-                    tipo: 'Autopista',
-                    estado: 'Excelente',
-                    longitud: 85
-                },
-                {
-                    coords: [[-0.9553, -80.7339], [-0.6267, -80.4123], [-0.3708, -80.4056]],
-                    name: 'Ruta E15 (Manta-Puerto López-Bahía)',
-                    tipo: 'Carretera Principal',
-                    estado: 'Bueno',
-                    longitud: 62
-                },
-                {
-                    coords: [[-1.5433, -80.9678], [-2.1962, -80.8887], [-2.2108, -80.9711]],
-                    name: 'Ruta E40 (Jipijapa-Salinas-La Libertad)',
-                    tipo: 'Carretera Principal',
-                    estado: 'Bueno',
-                    longitud: 95
-                },
-                {
-                    coords: [[-0.3708, -80.4056], [-0.8333, -80.4167], [-0.9667, -80.5833]],
-                    name: 'Vía Costanera Norte',
-                    tipo: 'Carretera Secundaria',
-                    estado: 'Regular',
-                    longitud: 45
-                }
-            ];
-
-            vias.forEach(via => {
-                const color = via.tipo === 'Autopista' ? '#e74c3c' : via.tipo === 'Carretera Principal' ? '#f39c12' : '#95a5a6';
-                const weight = via.tipo === 'Autopista' ? 5 : via.tipo === 'Carretera Principal' ? 3 : 2;
-                
-                L.polyline(via.coords, {
-                    color: color,
-                    weight: weight,
-                    opacity: 0.8
-                }).bindPopup(`
-                    <h4><i class="fas fa-road"></i> ${via.name}</h4>
-                    <p><strong>Tipo:</strong> ${via.tipo}</p>
-                    <p><strong>Estado:</strong> ${via.estado}</p>
-                    <p><strong>Longitud:</strong> ${via.longitud} km</p>
-                    <p><strong>Velocidad máxima:</strong> ${via.tipo === 'Autopista' ? '100 km/h' : '90 km/h'}</p>
-                `).addTo(viasLayer);
-            });
-
-            // Zonas urbanas (datos fijos ampliados)
-            const zonasUrbanas = [
-                {
-                    coords: [[-0.98, -80.76], [-0.93, -80.76], [-0.93, -80.71], [-0.98, -80.71]],
-                    name: 'Área Metropolitana de Manta',
-                    area: 45.2,
-                    poblacion: 350000,
-                    densidad: 7743
-                },
-                {
-                    coords: [[-1.29, -80.84], [-1.24, -80.84], [-1.24, -80.79], [-1.29, -80.79]],
-                    name: 'Área Urbana de Portoviejo',
-                    area: 52.8,
-                    poblacion: 400000,
-                    densidad: 7576
-                },
-                {
-                    coords: [[-2.22, -81.02], [-2.18, -81.02], [-2.18, -80.95], [-2.22, -80.95]],
-                    name: 'Área Urbana de Salinas-La Libertad',
-                    area: 28.5,
-                    poblacion: 184000,
-                    densidad: 6456
-                },
-                {
-                    coords: [[-0.40, -80.43], [-0.35, -80.43], [-0.35, -80.38], [-0.40, -80.38]],
-                    name: 'Área Urbana de Bahía de Caráquez',
-                    area: 12.3,
-                    poblacion: 35000,
-                    densidad: 2846
-                }
-            ];
-
-            zonasUrbanas.forEach(zona => {
-                L.polygon(zona.coords, {
-                    color: '#e74c3c',
-                    fillColor: '#e74c3c',
-                    fillOpacity: 0.2,
-                    weight: 2
-                }).bindPopup(`
-                    <h4><i class="fas fa-building"></i> ${zona.name}</h4>
-                    <p><strong>Área:</strong> ${zona.area} km²</p>
-                    <p><strong>Población:</strong> ${zona.poblacion.toLocaleString()}</p>
-                    <p><strong>Densidad:</strong> ${zona.densidad} hab/km²</p>
-                    <p><strong>Crecimiento:</strong> ${zona.densidad > 7000 ? 'Alto' : zona.densidad > 5000 ? 'Medio' : 'Bajo'}</p>
-                `).addTo(zonasLayer);
-            });
-        }
-
-        // Actualizar estadísticas
-        function actualizarEstadisticas() {
-            document.getElementById('totalObservaciones').textContent = observaciones.length;
-            document.getElementById('totalSOWT').textContent = sowtData.length;
-            
-            const especies = new Set([
-                ...observaciones.map(obs => obs.tipo_tortuga),
-                ...sowtData.map(s => {
-                    const sp = (s.species || '').toLowerCase();
-                    if (sp.includes('green') || sp.includes('verde')) return 'Verde';
-                    if (sp.includes('hawksbill') || sp.includes('carey')) return 'Carey';
-                    if (sp.includes('loggerhead') || sp.includes('boba')) return 'Boba';
-                    if (sp.includes('leatherback') || sp.includes('laud')) return 'Laúd';
-                    if (sp.includes('olive') || sp.includes('golfina')) return 'Golfina';
-                    return 'Verde';
-                })
-            ]);
-            document.getElementById('especiesUnicas').textContent = especies.size;
-            
-            const ahora = new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('ultimaActualizacion').textContent = ahora;
-
-            // Actualizar contadores por especie
-            Object.keys(coloresEspecies).forEach(especie => {
-                const countObs = observaciones.filter(obs => obs.tipo_tortuga === especie).length;
-                const countSOWT = sowtData.filter(s => {
-                    const sp = (s.species || '').toLowerCase();
-                    if (especie === 'Verde') return sp.includes('green') || sp.includes('verde');
-                    if (especie === 'Carey') return sp.includes('hawksbill') || sp.includes('carey');
-                    if (especie === 'Boba') return sp.includes('loggerhead') || sp.includes('boba');
-                    if (especie === 'Laúd') return sp.includes('leatherback') || sp.includes('laud');
-                    if (especie === 'Golfina') return sp.includes('olive') || sp.includes('golfina');
-                    return false;
-                }).length;
-                
-                document.getElementById(`count-${especie}`).textContent = countObs + countSOWT;
-            });
-        }
-
-        // Funciones de control
-        function toggleSection(header) {
-            const content = header.nextElementSibling;
-            const isActive = header.classList.contains('active');
-
-            if (isActive) {
-                header.classList.remove('active');
-                content.classList.remove('active');
-            } else {
-                header.classList.add('active');
-                content.classList.add('active');
-            }
-        }
-
-        function toggleSpeciesFilter(button) {
-            const especie = button.dataset.species;
-            const isActive = filtrosActivos[especie];
-            
-            filtrosActivos[especie] = !isActive;
-            
-            if (isActive) {
-                button.classList.add('inactive');
-            } else {
-                button.classList.remove('inactive');
-            }
-
-            mostrarObservaciones();
-            mostrarSOWTData();
-            actualizarEstadisticas();
-        }
-
-        function toggleLayer(layerName, isEnabled) {
-            const layers = {
-                poblados: pobladosLayer,
-                vias: viasLayer,
-                zonas: zonasLayer,
-                precip2018: precip2018Layer,
-                precip2019: precip2019Layer,
-                estaciones: estacionesLayer
-            };
-
-            const layer = layers[layerName];
-            if (!layer) {
-                console.warn(`Capa ${layerName} no encontrada`);
-                return;
-            }
-
-            if (isEnabled) {
-                if (!map.hasLayer(layer)) {
-                    layer.addTo(map);
-                    console.log(`✅ Capa ${layerName} activada`);
-                }
-            } else {
-                if (map.hasLayer(layer)) {
-                    map.removeLayer(layer);
-                    console.log(`❌ Capa ${layerName} desactivada`);
-                }
-            }
-        }
-
-        function obtenerUbicacion() {
-            if (navigator.geolocation) {
-                mostrarMensaje('Obteniendo ubicación...', 'loading');
-                
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        document.getElementById('latitud').value = position.coords.latitude.toFixed(6);
-                        document.getElementById('longitud').value = position.coords.longitude.toFixed(6);
-                        mostrarMensaje('Ubicación obtenida correctamente', 'success');
-                        setTimeout(() => limpiarMensaje(), 3000);
-                    },
-                    function(error) {
-                        let mensaje = 'Error al obtener ubicación: ';
-                        switch(error.code) {
-                            case error.PERMISSION_DENIED:
-                                mensaje += 'Permiso denegado por el usuario';
-                                break;
-                            case error.POSITION_UNAVAILABLE:
-                                mensaje += 'Ubicación no disponible';
-                                break;
-                            case error.TIMEOUT:
-                                mensaje += 'Tiempo de espera agotado';
-                                break;
-                            default:
-                                mensaje += 'Error desconocido';
-                        }
-                        mostrarMensaje(mensaje, 'error');
-                    }
-                );
-            } else {
-                mostrarMensaje('Geolocalización no soportada por este navegador', 'error');
-            }
-        }
-
-        function mostrarMensaje(texto, tipo) {
-            const messageDiv = document.getElementById('formMessage');
-            messageDiv.innerHTML = texto;
-            messageDiv.className = `message ${tipo}`;
-        }
-
-        function limpiarMensaje() {
-            const messageDiv = document.getElementById('formMessage');
-            messageDiv.innerHTML = '';
-            messageDiv.className = 'message';
-        }
-
-        function actualizarDatos() {
-            mostrarMensaje('Actualizando datos...', 'loading');
-            cargarDatos().then(() => {
-                mostrarMensaje('Datos actualizados correctamente', 'success');
-                setTimeout(() => limpiarMensaje(), 3000);
-            });
-        }
-
-        function centrarMapa() {
-            map.setView([-1.0, -80.7], 8);
-        }
-
-        // Manejar envío del formulario
-        document.getElementById('observationForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (isOfflineMode) {
-                mostrarMensaje('No se puede guardar en modo offline', 'error');
-                return;
-            }
-
-            mostrarMensaje('Registrando observación...', 'loading');
-
-            const nombreObservador = document.getElementById('nombreObservador').value;
-            const tagId = document.getElementById('tagId').value;
-            const tipoTortuga = document.getElementById('tipoTortuga').value;
-            const actividad = document.getElementById('actividad').value;
-            const observacionesTexto = document.getElementById('observaciones').value;
-            const latitud = parseFloat(document.getElementById('latitud').value);
-            const longitud = parseFloat(document.getElementById('longitud').value);
-
-            const data = {
-                nombre_observador: nombreObservador,
-                tag_id_tortuga: tagId || null,
-                tipo_tortuga: tipoTortuga,
-                actividad: actividad || null,
-                observaciones: observacionesTexto || null,
-                latitud: latitud,
-                longitud: longitud
-            };
-
-            try {
-                const { data: result, error } = await supabaseClient
-                    .from('observaciones_tortugas')
-                    .insert([data])
-                    .select();
-
-                if (error) throw error;
-
-                mostrarMensaje('¡Observación registrada exitosamente!', 'success');
-                e.target.reset();
-                
-                // Recargar datos
-                await cargarObservaciones();
-                actualizarEstadisticas();
-                actualizarListaObservaciones();
-                
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarMensaje(`Error al registrar la observación: ${error.message}`, 'error');
-            }
-        });
-
-        // Inicializar cuando la página cargue
-        document.addEventListener('DOMContentLoaded', async function() {
-            await initSupabase();
-            initMap();
-        });
-    </script>
-</body>
-</html>
                         <div style="min-width: 280px;">
                             <h4 style="margin: 0 0 10px; color: ${coloresEspecies[especie]};">
                                 🔺 SOWT - ${especie}
@@ -1828,3 +1496,8 @@
                 });
 
                 marker.bindPopup(`
+                    <h4><i class="fas fa-city"></i> ${poblado.name}</h4>
+                    <p><strong>Población:</strong> ${poblado.poblacion.toLocaleString()}</p>
+                    <p><strong>Provincia:</strong> ${poblado.provincia}</p>
+                    <p><strong>Tipo:</strong> ${poblado.tipo}</p>
+                    <p><strong>Puerto:</strong> ${poblado.puerto ? 'Sí' : 'No'}</p>
